@@ -1,0 +1,13 @@
+<!-- templates/admin_users.html -->
+<form method="POST">
+    <input type="text" name="username" required>
+    <input type="password" name="password" required>
+    <button type="submit">Add Admin User</button>
+</form>
+<table>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.username }}</td>
+    </tr>
+    {% endfor %}
+</table>

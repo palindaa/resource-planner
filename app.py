@@ -1,10 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, g
+from flask import Flask, render_template, request, redirect, url_for, g, make_response
 import sqlite3
 import os
 from datetime import datetime, timedelta
+import jwt
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.config['DATABASE'] = os.path.join(app.root_path, 'team_planner.db')
+app.config['SECRET_KEY'] = 'your-secret-key-here'  # Change this in production!
 
 # Database initialization
 def get_db():
@@ -18,6 +21,11 @@ def init_db():
         db = get_db()
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
+        # Add initial admin user
+        db.execute(
+            'INSERT OR IGNORE INTO AdminUser (username, password) VALUES (?, ?)',
+            ('admin', generate_password_hash('1234'))
+        )
         db.commit()
 
 # Close database connection
@@ -26,10 +34,76 @@ def close_db(error):
     if hasattr(g, 'db'):
         g.db.close()
 
-# ... [Rest of the Flask routes from previous answer] ...
+def get_admin_user(username):
+    db = get_db()
+    return db.execute(
+        'SELECT * FROM AdminUser WHERE username = ?', (username,)
+    ).fetchone()
+
+def token_required(f):
+    def decorator(*args, **kwargs):
+        token = request.cookies.get('token')
+        if not token:
+            return redirect(url_for('login'))
+        try:
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            current_user = get_admin_user(data['username'])
+        except:
+            return redirect(url_for('login'))
+        return f(current_user, *args, **kwargs)
+    decorator.__name__ = f.__name__
+    return decorator
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = get_admin_user(username)
+        
+        if user and check_password_hash(user['password'], password):
+            token = jwt.encode({
+                'username': user['username'],
+                'exp': datetime.utcnow() + timedelta(hours=24)
+            }, app.config['SECRET_KEY'])
+            
+            resp = make_response(redirect(url_for('dashboard')))
+            resp.set_cookie('token', token)
+            return resp
+        
+        return render_template('login.html', error='Invalid credentials')
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    resp = make_response(redirect(url_for('login')))
+    resp.delete_cookie('token')
+    return resp
+
+@app.route('/admin-users', methods=['GET', 'POST'])
+@token_required
+def admin_users(current_user):
+    db = get_db()
+    
+    if request.method == 'POST':
+        username = request.form['username']
+        password = generate_password_hash(request.form['password'])
+        
+        try:
+            db.execute('''
+                INSERT INTO AdminUser (username, password)
+                VALUES (?, ?)
+            ''', (username, password))
+            db.commit()
+        except sqlite3.IntegrityError:
+            return render_template('admin_users.html', error='Username already exists')
+    
+    users = db.execute('SELECT * FROM AdminUser').fetchall()
+    return render_template('admin_users.html', users=users)
 
 @app.route('/users', methods=['GET', 'POST'])
-def users():
+@token_required
+def users(current_user):
     db = get_db()
     
     if request.method == 'POST':
@@ -46,14 +120,16 @@ def users():
     return render_template('users.html', users=users)
 
 @app.route('/delete_user/<int:user_id>')
-def delete_user(user_id):
+@token_required
+def delete_user(current_user, user_id):
     db = get_db()
     db.execute('DELETE FROM users WHERE id = ?', (user_id,))
     db.commit()
     return redirect(url_for('users'))
 
 @app.route('/projects', methods=['GET', 'POST'])
-def projects():
+@token_required
+def projects(current_user):
     db = get_db()
     
     if request.method == 'POST':
@@ -71,21 +147,24 @@ def projects():
     return render_template('projects.html', projects=projects)
 
 @app.route('/start_project/<int:project_id>')
-def start_project(project_id):
+@token_required
+def start_project(current_user, project_id):
     db = get_db()
     db.execute('UPDATE projects SET status = "Started" WHERE id = ?', (project_id,))
     db.commit()
     return redirect(url_for('projects'))
 
 @app.route('/close_project/<int:project_id>')
-def close_project(project_id):
+@token_required
+def close_project(current_user, project_id):
     db = get_db()
     db.execute('UPDATE projects SET status = "Closed" WHERE id = ?', (project_id,))
     db.commit()
     return redirect(url_for('projects'))
 
 @app.route('/assign', methods=['GET', 'POST'])
-def assign():
+@token_required
+def assign(current_user):
     db = get_db()
     
     if request.method == 'POST':
@@ -105,7 +184,8 @@ def assign():
     return render_template('assignments.html', users=users, projects=projects)
 
 @app.route('/resource-allocation')
-def resource_allocation():
+@token_required
+def resource_allocation(current_user):
     db = get_db()
     
     assignments = db.execute('''
@@ -143,7 +223,8 @@ def resource_allocation():
     return render_template('resource_allocation.html', users=users_list)
 
 @app.route('/')
-def dashboard():
+@token_required
+def dashboard(current_user):
     db = get_db()
     active_projects = db.execute('SELECT COUNT(*) FROM projects WHERE status = "Started"').fetchone()[0]
     closed_projects = db.execute('SELECT COUNT(*) FROM projects WHERE status = "Closed"').fetchone()[0]
