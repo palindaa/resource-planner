@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+    <div class="mb-8 border-b pb-4">
+        <h1 class="text-3xl font-bold text-gray-800">Resource Allocation</h1>
+        <p class="mt-2 text-sm text-gray-600">View-only timeline of employee assignments</p>
+    </div>
+
+    <div class="flex">
+        <!-- Gantt Chart Column -->
+        <div class="flex-1 overflow-x-auto">
+            <div class="bg-white p-4 rounded-lg shadow">
+                <div id="timeline" style="height: 600px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const users = {{ users|tojson|safe }};
+            
+            // Prepare data for Google Timeline
+            const dataTableRows = [];
+            users.forEach(user => {
+                user.tasks.forEach(task => {
+                    dataTableRows.push([
+                        user.name,          // Resource (employee name)
+                        task.name,          // Task name
+                        new Date(task.start), 
+                        new Date(task.end),
+                        task.color          // Bar color
+                    ]);
+                });
+            });
+
+            // Load Google Charts
+            google.charts.load('current', {'packages':['timeline']});
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                const container = document.getElementById('timeline');
+                const chart = new google.visualization.Timeline(container);
+                const dataTable = new google.visualization.DataTable();
+
+                // Define columns for the timeline
+                dataTable.addColumn({ type: 'string', id: 'Employee' });
+                dataTable.addColumn({ type: 'string', id: 'Task' });
+                dataTable.addColumn({ type: 'string', role: 'tooltip' });
+                dataTable.addColumn({ type: 'date', id: 'Start' });
+                dataTable.addColumn({ type: 'date', id: 'End' });
+                dataTable.addColumn({ type: 'string', role: 'style' });
+                
+                dataTable.addRows(dataTableRows.map(row => {
+                    const start = row[2];
+                    const end = row[3];
+                    const durationDays = Math.round((end - start) / 86400000);
+                    const tooltip = `
+                        <div style="padding:10px;">
+                            <strong>${row[0]}</strong><br>
+                            Project: ${row[1]}<br>
+                            Start: ${start.toLocaleDateString()}<br>
+                            End: ${end.toLocaleDateString()}<br>
+                            Duration: ${durationDays} days
+                        </div>
+                    `;
+                    return [
+                        row[0],        // Employee
+                        row[1],        // Task
+                        tooltip,       // Tooltip
+                        start,         // Start date
+                        end,           // End date
+                        row[4]         // Color
+                    ];
+                }));
+
+                const options = {
+                    height: users.length * 40 + 80,
+                    timeline: { 
+                        showRowLabels: true,
+                        colorByRowLabel: false
+                    },
+                    tooltip: { isHtml: true },
+                };
+
+                chart.draw(dataTable, options);
+            }
+        });
+    </script>
+</div>
+{% endblock %} 

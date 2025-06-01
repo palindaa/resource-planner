@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <title>Team Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+    <script src="https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.js"></script>
+</head>
+<body class="h-full font-['Open_Sans']">
+    <!-- <header class="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 text-center">
+        <h1 class="text-3xl font-bold">Team Planner</h1>
+    </header> -->
+    
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <a href="{{ url_for('dashboard') }}" class="text-xl font-semibold text-gray-800">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="hr-9" style="height: 9rem;">
+                </a>
+                <div class="flex space-x-8">
+                    <a href="{{ url_for('dashboard') }}" 
+                       class="{{ 'text-green-700' if request.path == '/' else 'text-gray-600' }} hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('resource_allocation') }}" 
+                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Resource Timeline
+                    </a>
+                    <a href="{{ url_for('users') }}" 
+                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Users
+                    </a>
+                    <a href="{{ url_for('projects') }}" 
+                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Projects
+                    </a>
+                    <a href="{{ url_for('assign') }}" 
+                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                        Assignments
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-auto border-t bg-white py-4">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
+            <p>&copy; 2025 Resource Planner</p>
+        </div>
+    </footer>
+</body>
+</html>

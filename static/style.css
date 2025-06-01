@@ -1,0 +1,98 @@
+/* Instead of custom CSS, you'll use Tailwind classes directly in HTML */
+
+/* body styles → apply to body or container div */
+/* font-family: Arial, sans-serif; → font-sans */
+/* margin: 0 auto; → mx-auto */
+/* padding: 20px; → p-5 */
+
+/* nav styles → apply to nav element */
+/* margin-bottom: 20px; → mb-5 */
+/* padding: 10px; → p-2.5 */
+/* background-color: #f0f0f0; → bg-gray-100 */
+
+/* nav a styles → apply to nav links */
+/* margin-right: 15px; → mr-4 */
+/* text-decoration: none; → no-underline */
+/* color: #333; → text-gray-700 */
+
+/* form styles → apply to form elements */
+/* margin-bottom: 20px; → mb-5 */
+
+/* input, select, textarea → apply to these elements */
+/* margin: 5px; → m-1 */
+/* padding: 8px; → p-2 */
+/* display: block; → block */
+
+/* button styles → apply to button elements */
+/* padding: 8px 15px; → px-4 py-2 */
+/* background-color: #4CAF50; → bg-green-500 */
+/* color: white; → text-white */
+/* border: none; → border-none */
+/* cursor: pointer; → cursor-pointer */
+
+/* button:hover → hover:bg-green-600 */
+
+/* ul styles → apply to ul elements */
+/* list-style-type: none; → list-none */
+/* padding: 0; → p-0 */
+
+/* li styles → apply to li elements */
+/* padding: 10px; → p-2.5 */
+/* margin: 5px 0; → my-1 */
+/* background-color: #f8f8f8; → bg-gray-50 */
+
+body {
+    font-family: Arial, sans-serif;
+    /* max-width: 800px; */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+nav {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f0f0f0;
+}
+
+nav a {
+    margin-right: 15px;
+    text-decoration: none;
+    color: #333;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+input, select, textarea {
+    margin: 5px;
+    padding: 8px;
+    display: block;
+}
+
+button {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    padding: 10px;
+    margin: 5px 0;
+    background-color: #f8f8f8;
+} 
+
+.hr-9 {
+    height: 9rem;
+}
