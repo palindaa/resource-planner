@@ -10,25 +10,25 @@
     
     <!-- Active Projects Card -->
     <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Active</h3>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Active Projects</h3>
         <p class="text-3xl font-bold text-green-600">{{ active_projects }}</p>
     </div>
     
     <!-- Queued Projects Card -->
     <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Queued</h3>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Queued Projects</h3>
         <p class="text-3xl font-bold text-yellow-600">{{ queued_projects }}</p>
     </div>
     
     <!-- Closed Projects Card -->
     <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Closed</h3>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Closed Projects</h3>
         <p class="text-3xl font-bold text-red-600">{{ closed_projects }}</p>
     </div>
     
     <!-- Total Projects Card -->
     <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Total</h3>
+        <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Projects</h3>
         <p class="text-3xl font-bold text-purple-600">{{ total_projects }}</p>
     </div>
 </div>
@@ -57,7 +57,21 @@
     </div>
 </div>
 
+<div class="grid grid-cols-1 gap-6 mt-6">
+    <!-- Project Hours Card -->
+    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">Project Total Man Hours</h3>
+        <div class="relative h-96">
+            <canvas id="hoursChart"></canvas>
+        </div>
+        {% if not hours_datasets %}
+            <p class="text-gray-500 text-center py-4">No project hours data available</p>
+        {% endif %}
+    </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Department Chart
@@ -121,6 +135,45 @@ document.addEventListener('DOMContentLoaded', function() {
                             size: 14
                         }
                     }
+                }
+            }
+        }
+    });
+
+    // Debug logs
+    console.log('Date sequence:', {{ date_sequence|tojson|safe }});
+    console.log('Hours datasets:', {{ hours_datasets|tojson|safe }});
+
+    // Project Hours Chart
+    const hoursCtx = document.getElementById('hoursChart').getContext('2d');
+    new Chart(hoursCtx, {
+        type: 'line',
+        data: {
+            labels: {{ date_sequence|tojson|safe }},
+            datasets: {{ hours_datasets|tojson|safe }}
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        parser: 'yyyy-MM-dd',
+                        adapter: 'date-fns',
+                        tooltipFormat: 'MMM d'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Timeline'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Daily Total Man Hours'
+                    },
+                    beginAtZero: true
                 }
             }
         }

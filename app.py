@@ -244,6 +244,64 @@ def dashboard(current_user):
         GROUP BY projects.name
     ''').fetchall()
 
+    # Get project timeline data
+    assignments = db.execute('''
+        SELECT 
+            projects.id as project_id,
+            projects.name,
+            projects.color,
+            user_projects.start_date,
+            user_projects.end_date
+        FROM user_projects
+        JOIN projects ON user_projects.project_id = projects.id
+    ''').fetchall()
+
+    from collections import defaultdict
+    from datetime import datetime, timedelta
+
+    project_timelines = defaultdict(list)
+    all_dates = set()
+
+    # Process assignments to get daily hours
+    for assignment in assignments:
+        project = dict(assignment)
+        start = datetime.strptime(project['start_date'], '%Y-%m-%d').date()
+        end = datetime.strptime(project['end_date'], '%Y-%m-%d').date()
+        
+        # Generate all dates in this assignment range
+        delta = end - start
+        for i in range(delta.days + 1):
+            current_date = start + timedelta(days=i)
+            all_dates.add(current_date)
+            project_timelines[project['name']].append(current_date)
+
+    # Create sorted list of all unique dates
+    date_sequence = sorted(all_dates)
+    
+    # Create a dictionary of project colors
+    project_colors = {project['name']: project['color'] for project in assignments}
+
+    # Prepare chart data
+    hours_datasets = []
+    for project, dates in project_timelines.items():
+        color = project_colors.get(project, '#3B82F6')  # Default to blue if missing
+        date_counts = {date: 0 for date in date_sequence}
+        
+        # Count hours per day (8 per developer)
+        for d in dates:
+            date_counts[d] += 8
+        
+        hours_datasets.append({
+            'label': project,
+            'data': [date_counts[date] for date in date_sequence],
+            'borderColor': color,
+            'tension': 0.4,
+            'fill': False
+        })
+
+    # Convert dates to ISO strings for JSON serialization
+    date_sequence = [date.isoformat() for date in sorted(all_dates)]
+    
     return render_template('dashboard.html', 
                          active_projects=active_projects,
                          closed_projects=closed_projects,
@@ -251,7 +309,9 @@ def dashboard(current_user):
                          total_projects=total_projects,
                          total_users=total_users,
                          department_data=department_data,
-                         project_allocation_data=project_allocation_data)
+                         project_allocation_data=project_allocation_data,
+                         date_sequence=date_sequence,
+                         hours_datasets=hours_datasets)
 
 if __name__ == '__main__':
     app.run(debug=True) 
