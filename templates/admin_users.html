@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6">Admin User Management</h2>
+
+    <!-- Add New Admin Form -->
+    <div class="bg-white p-6 rounded-lg shadow-sm mb-8">
+        <h3 class="text-lg font-semibold mb-4">Add New Admin</h3>
+        <form method="POST">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Username</label>
+                    <input type="text" name="username" required
+                        class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" name="password" required
+                        class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200">
+                </div>
+            </div>
+            <button type="submit" 
+                    class="mt-4 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                Create Admin
+            </button>
+        </form>
+    </div>
+
+    <!-- Existing Admins List -->
+    <div class="bg-white p-6 rounded-lg shadow-sm">
+        <h3 class="text-lg font-semibold mb-4">Existing Admins</h3>
+        <div class="space-y-4">
+            {% for user in users %}
+            <div class="border-b pb-4">
+                <form method="POST" class="grid grid-cols-3 gap-4 items-end">
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" value="{{ user.username }}" disabled
+                            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm bg-gray-100 px-3 py-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">New Password</label>
+                        <input type="password" name="password" required
+                            class="mt-1 block w-full rounded-lg border-slate-300 shadow-sm px-3 py-2 focus:border-green-500 focus:ring-2 focus:ring-green-200">
+                    </div>
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        Update Password
+                    </button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

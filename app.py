@@ -86,17 +86,30 @@ def admin_users(current_user):
     db = get_db()
     
     if request.method == 'POST':
-        username = request.form['username']
-        password = generate_password_hash(request.form['password'])
-        
-        try:
+        # Check if this is an update request
+        if 'user_id' in request.form:
+            user_id = request.form['user_id']
+            new_password = generate_password_hash(request.form['password'])
+            
             db.execute('''
-                INSERT INTO AdminUser (username, password)
-                VALUES (?, ?)
-            ''', (username, password))
+                UPDATE AdminUser 
+                SET password = ?
+                WHERE id = ?
+            ''', (new_password, user_id))
             db.commit()
-        except sqlite3.IntegrityError:
-            return render_template('admin_users.html', error='Username already exists')
+        else:
+            # Existing create new user logic
+            username = request.form['username']
+            password = generate_password_hash(request.form['password'])
+            
+            try:
+                db.execute('''
+                    INSERT INTO AdminUser (username, password)
+                    VALUES (?, ?)
+                ''', (username, password))
+                db.commit()
+            except sqlite3.IntegrityError:
+                return render_template('admin_users.html', error='Username already exists')
     
     users = db.execute('SELECT * FROM AdminUser').fetchall()
     return render_template('admin_users.html', users=users)
