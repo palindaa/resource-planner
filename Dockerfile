@@ -14,4 +14,4 @@ RUN (crontab -l 2>/dev/null; echo "0 */2 * * * /app/backup.sh") | crontab -
 
 EXPOSE 5000
 
-CMD cron && python app.py
+CMD cron && python app.py --host=0.0.0.0
