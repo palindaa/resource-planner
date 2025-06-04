@@ -179,9 +179,54 @@ def assign(current_user):
         ''', (user_id, project_id, start_date, end_date))
         db.commit()
     
+    # Get existing assignments
+    assignments = db.execute('''
+        SELECT user_projects.id, users.username, projects.name as project_name,
+               user_projects.start_date, user_projects.end_date
+        FROM user_projects
+        JOIN users ON user_projects.user_id = users.id
+        JOIN projects ON user_projects.project_id = projects.id
+        ORDER BY user_projects.start_date DESC
+    ''').fetchall()
+
     users = db.execute('SELECT * FROM users').fetchall()
     projects = db.execute('SELECT * FROM projects WHERE status = "Started"').fetchall()
-    return render_template('assignments.html', users=users, projects=projects)
+    return render_template('assignments.html', 
+                         users=users, 
+                         projects=projects,
+                         assignments=assignments)
+
+@app.route('/edit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
+@token_required
+def edit_assignment(current_user, assignment_id):
+    db = get_db()
+    assignment = db.execute('''
+        SELECT user_projects.*, users.username, projects.name as project_name
+        FROM user_projects
+        JOIN users ON user_projects.user_id = users.id
+        JOIN projects ON user_projects.project_id = projects.id
+        WHERE user_projects.id = ?
+    ''', (assignment_id,)).fetchone()
+
+    if request.method == 'POST':
+        db.execute('''
+            UPDATE user_projects 
+            SET start_date = ?, end_date = ?
+            WHERE id = ?
+        ''', (
+            request.form['start_date'],
+            request.form['end_date'],
+            assignment_id
+        ))
+        db.commit()
+        return redirect(url_for('assign'))
+
+    users = db.execute('SELECT * FROM users').fetchall()
+    projects = db.execute('SELECT * FROM projects').fetchall()
+    return render_template('edit_assignment.html',
+                         assignment=assignment,
+                         users=users,
+                         projects=projects)
 
 @app.route('/resource-allocation')
 @token_required
@@ -312,6 +357,14 @@ def dashboard(current_user):
                          project_allocation_data=project_allocation_data,
                          date_sequence=date_sequence,
                          hours_datasets=hours_datasets)
+
+@app.route('/delete_assignment/<int:assignment_id>')
+@token_required
+def delete_assignment(current_user, assignment_id):
+    db = get_db()
+    db.execute('DELETE FROM user_projects WHERE id = ?', (assignment_id,))
+    db.commit()
+    return redirect(url_for('assign'))
 
 if __name__ == '__main__':
     app.run(debug=True) 

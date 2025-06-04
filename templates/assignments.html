@@ -51,4 +51,38 @@
         </button>
     </form>
 </div>
+
+{% if assignments %}
+<div class="bg-white rounded-xl shadow-lg p-6 mt-6">
+    <h2 class="text-xl font-semibold mb-4">Existing Assignments</h2>
+    <table class="w-full">
+        <thead>
+            <tr class="text-left text-sm text-gray-600 border-b">
+                <th class="pb-3">User</th>
+                <th class="pb-3">Project</th>
+                <th class="pb-3">Start Date</th>
+                <th class="pb-3">End Date</th>
+                <th class="pb-3">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for assignment in assignments %}
+            <tr class="border-b last:border-b-0">
+                <td class="py-4">{{ assignment.username }}</td>
+                <td class="py-4">{{ assignment.project_name }}</td>
+                <td class="py-4">{{ assignment.start_date }}</td>
+                <td class="py-4">{{ assignment.end_date }}</td>
+                <td class="py-4">
+                    <a href="/edit_assignment/{{ assignment.id }}" 
+                       class="text-green-600 hover:text-green-800 mr-2">Edit</a>
+                    <a href="/delete_assignment/{{ assignment.id }}" 
+                       class="text-red-600 hover:text-red-800">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 {% endblock %}
