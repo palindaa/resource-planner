@@ -28,9 +28,9 @@
                     dataTableRows.push([
                         user.name,          // Resource (employee name)
                         task.name,          // Task name
+                        task.color,         // Bar color
                         new Date(task.start), 
                         new Date(task.end),
-                        task.color          // Bar color
                     ]);
                 });
             });
@@ -47,14 +47,14 @@
                 // Define columns for the timeline
                 dataTable.addColumn({ type: 'string', id: 'Employee' });
                 dataTable.addColumn({ type: 'string', id: 'Task' });
+                dataTable.addColumn({ type: 'string', role: 'style' });
                 dataTable.addColumn({ type: 'string', role: 'tooltip' });
                 dataTable.addColumn({ type: 'date', id: 'Start' });
                 dataTable.addColumn({ type: 'date', id: 'End' });
-                dataTable.addColumn({ type: 'string', role: 'style' });
                 
                 dataTable.addRows(dataTableRows.map(row => {
-                    const start = row[2];
-                    const end = row[3];
+                    const start = row[3];
+                    const end = row[4];
                     const durationDays = Math.round((end - start) / 86400000);
                     const tooltip = `
                         <div style="padding:10px;">
@@ -65,15 +65,18 @@
                             Duration: ${durationDays} days
                         </div>
                     `;
+                    console.log('Color', row[2]);
                     return [
                         row[0],        // Employee
                         row[1],        // Task
+                        `color: ${row[2]}`,  // Properly formatted color style
                         tooltip,       // Tooltip
                         start,         // Start date
-                        end,           // End date
-                        row[4]         // Color
+                        end         // End date
                     ];
                 }));
+
+                
 
                 const options = {
                     height: users.length * 40 + 80,
