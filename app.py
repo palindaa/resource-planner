@@ -191,7 +191,8 @@ def assign(current_user):
             VALUES (?, ?, ?, ?)
         ''', (user_id, project_id, start_date, end_date))
         db.commit()
-    
+        return redirect(url_for('assign'))
+
     # Get existing assignments
     assignments = db.execute('''
         SELECT user_projects.id, users.username, projects.name as project_name,
