@@ -11,7 +11,11 @@
         <!-- Gantt Chart Column -->
         <div class="flex-1 overflow-x-auto">
             <div class="bg-white p-4 rounded-lg shadow">
-                <div id="timeline" style="height: 600px;"></div>
+                <!-- Add dashboard container -->
+                <div id="dashboard_div">
+                    <div id="filter_div" style="height: 50px; width: 100%;"></div>
+                    <div id="timeline" style="height: 100%"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -19,7 +23,7 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const users = {{ users|tojson|safe }};
+            const users = JSON.parse('{{ users|tojson|safe }}');
             
             // Prepare data for Google Timeline
             const dataTableRows = [];
@@ -35,13 +39,16 @@
                 });
             });
 
-            // Load Google Charts
-            google.charts.load('current', {'packages':['timeline']});
-            google.charts.setOnLoadCallback(drawChart);
+            // Load Google Charts with controls package
+            google.charts.load('current', {'packages':['timeline', 'controls']});
+            google.charts.setOnLoadCallback(drawDashboard);
 
-            function drawChart() {
-                const container = document.getElementById('timeline');
-                const chart = new google.visualization.Timeline(container);
+            function drawDashboard() {
+                const dashboard = new google.visualization.Dashboard(
+                    document.getElementById('dashboard_div')
+                );
+
+                // Create the DataTable first
                 const dataTable = new google.visualization.DataTable();
 
                 // Define columns for the timeline
@@ -76,18 +83,58 @@
                     ];
                 }));
 
-                
+                // Compute daily ticks for range filter axis
+                const startDates = dataTableRows.map(r => r[3]);
+                const endDates = dataTableRows.map(r => r[4]);
+                const minTime = Math.min(...startDates.map(d => d.getTime()));
+                const maxTime = Math.max(...endDates.map(d => d.getTime()));
+                const minDate = new Date(minTime);
+                const maxDate = new Date(maxTime);
+                const dailyTicks = [];
+                for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+                    dailyTicks.push(new Date(d));
+                }
 
-                const options = {
-                    height: users.length * 40 + 80,
-                    timeline: { 
-                        showRowLabels: true,
-                        colorByRowLabel: false
-                    },
-                    tooltip: { isHtml: true },
-                };
+                // Create range filter control
+                const rangeFilter = new google.visualization.ControlWrapper({
+                    controlType: 'ChartRangeFilter',
+                    containerId: 'filter_div',
+                    options: {
+                        filterColumnIndex: 5,  // Index of Start Date column
+                        ui: {
+                            chartType: 'LineChart',
+                            chartOptions: {
+                                chartArea: {width: '80%'},
+                                hAxis: {
+                                    baselineColor: 'none',
+                                    ticks: dailyTicks,
+                                    format: 'MMM dd'
+                                }
+                            },
+                            chartView: {
+                                columns: [4, 5]  // Show start and end dates
+                            }
+                        }
+                    }
+                });
 
-                chart.draw(dataTable, options);
+                // Create timeline chart wrapper
+                const timelineChart = new google.visualization.ChartWrapper({
+                    chartType: 'Timeline',
+                    containerId: 'timeline',
+                    options: {
+                        timeline: { 
+                            showRowLabels: true,
+                            colorByRowLabel: false
+                        },
+                        tooltip: { isHtml: true },
+                        height: users.length * 40 + 80
+                    }
+                });
+
+                // Establish dependencies and draw
+                dashboard.bind(rangeFilter, timelineChart);
+                dashboard.draw(dataTable);
             }
         });
     </script>
