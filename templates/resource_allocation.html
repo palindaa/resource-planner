@@ -62,10 +62,13 @@
             const dataTableRows = [];
             users.forEach(user => {
                 user.tasks.forEach(task => {
+                    // Create employee name with department in brackets
+                    const employeeName = `${user.name} (${user.department})`;
+                    
                     dataTableRows.push([
-                        user.name,          // Resource (employee name)
-                        task.name,          // Task name
-                        task.color,         // Bar color
+                        employeeName,          // Resource with department
+                        task.name,             // Task name
+                        task.color,            // Bar color
                         new Date(task.start), 
                         new Date(task.end),
                     ]);

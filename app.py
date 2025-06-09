@@ -258,7 +258,7 @@ def resource_allocation(current_user):
     db = get_db()
     
     assignments = db.execute('''
-        SELECT users.id as user_id, users.username, 
+        SELECT users.id as user_id, users.username, users.department,
                projects.id as project_id, projects.name, projects.color,
                user_projects.start_date, user_projects.end_date 
         FROM user_projects
@@ -274,6 +274,7 @@ def resource_allocation(current_user):
         if user_id not in users:
             users[user_id] = {
                 'name': assignment['username'],
+                'department': assignment['department'],
                 'tasks': []
             }
         users[user_id]['tasks'].append({
