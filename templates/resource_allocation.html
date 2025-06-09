@@ -13,6 +13,11 @@
             <div class="bg-white p-4 rounded-lg shadow">
                 <!-- Add dashboard container -->
                 <div id="dashboard_div">
+                    <div id="project_filter_div" style="height: 50px; width: 100%;"></div>
+
+                    <label for="filter_div" style="font-family: Open Sans; margin-bottom: 4px; display: block;">
+                        Select End Date Range:
+                      </label>
                     <div id="filter_div" style="height: 50px; width: 100%;"></div>
                     <div id="timeline" style="height: 100%"></div>
                 </div>
@@ -21,7 +26,35 @@
     </div>
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <style>
+        .google-visualization-controls-label {
+            font-family: 'Open Sans', sans-serif !important;
+        }
+
+        .goog-container-horizontal{
+            border: 1px solid gray;
+            padding: 0px 5px;
+            border-radius: 3px;
+            margin-left: 5px;
+        }
+    </style>
     <script>
+
+        function getDateRangeFromData(dataTable, startCol = 4, endCol = 5) {
+            let minDate = null;
+            let maxDate = null;
+
+            for (let i = 0; i < dataTable.getNumberOfRows(); i++) {
+                const start = dataTable.getValue(i, startCol);
+                const end = dataTable.getValue(i, endCol);
+
+                if (!minDate || start < minDate) minDate = start;
+                if (!maxDate || end > maxDate) maxDate = end;
+            }
+
+            return { minDate, maxDate };
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const users = JSON.parse('{{ users|tojson|safe }}');
             
@@ -83,37 +116,52 @@
                     ];
                 }));
 
-                // Compute daily ticks for range filter axis
-                const startDates = dataTableRows.map(r => r[3]);
-                const endDates = dataTableRows.map(r => r[4]);
-                const minTime = Math.min(...startDates.map(d => d.getTime()));
-                const maxTime = Math.max(...endDates.map(d => d.getTime()));
-                const minDate = new Date(minTime);
-                const maxDate = new Date(maxTime);
-                const dailyTicks = [];
-                for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
-                    dailyTicks.push(new Date(d));
-                }
 
+                const range = getDateRangeFromData(dataTable, 4, 5);
+                console.log('Range', range);
+                console.log('MinDate:', range.minDate, 'MaxDate:', range.maxDate);
                 // Create range filter control
                 const rangeFilter = new google.visualization.ControlWrapper({
                     controlType: 'ChartRangeFilter',
                     containerId: 'filter_div',
                     options: {
-                        filterColumnIndex: 5,  // Index of Start Date column
+                        filterColumnIndex: 5,
                         ui: {
                             chartType: 'LineChart',
                             chartOptions: {
                                 chartArea: {width: '80%'},
+                                fontName: 'Open Sans',
                                 hAxis: {
                                     baselineColor: 'none',
-                                    ticks: dailyTicks,
-                                    format: 'MMM dd'
+                                    format: 'MMM dd',
+                                    textStyle: {fontName: 'Open Sans'},
+                                    viewWindow: {
+                                        min: range.minDate,
+                                        max: range.maxDate
+                                    }
                                 }
                             },
                             chartView: {
-                                columns: [4, 5]  // Show start and end dates
+                                columns: [4, 5]
                             }
+                        }
+                    }
+                });
+
+                // Create project filter
+                const projectFilter = new google.visualization.ControlWrapper({
+                    controlType: 'CategoryFilter',
+                    containerId: 'project_filter_div',
+                    options: {
+                        filterColumnIndex: 1,
+                        ui: {
+                            label: 'Project',
+                            allowTyping: false,
+                            allowMultiple: true,
+                            allowNone: true,
+                            labelStyle: {fontName: 'Open Sans'},
+                            selectedItemStyle: {fontName: 'Open Sans'},
+                            cssClass: 'google-visualization-controls-label'
                         }
                     }
                 });
@@ -125,16 +173,52 @@
                     options: {
                         timeline: { 
                             showRowLabels: true,
-                            colorByRowLabel: false
+                            colorByRowLabel: false,
+                            rowLabelStyle: {fontName: 'Open Sans'}
                         },
-                        tooltip: { isHtml: true },
+                        tooltip: { 
+                            isHtml: true,
+                            textStyle: {fontName: 'Open Sans'}
+                        },
+                        fontName: 'Open Sans',
                         height: users.length * 40 + 80
                     }
                 });
 
                 // Establish dependencies and draw
-                dashboard.bind(rangeFilter, timelineChart);
+                dashboard.bind([projectFilter, rangeFilter], timelineChart);
                 dashboard.draw(dataTable);
+
+                // Set the range filter state after drawing to ensure it shows the full range
+                // google.visualization.events.addListener(dashboard, 'ready', function() {
+                //     rangeFilter.setState({
+                //         range: {
+                //             start: range.minDate,
+                //             end: range.maxDate
+                //         }
+                //     });
+                //     rangeFilter.draw();
+                // });
+
+                // Update range viewWindow when project filter changes
+                google.visualization.events.addListener(projectFilter, 'statechange', function() {
+                    // Get filtered data from the timeline chart, not the filter
+                    const filteredData = timelineChart.getDataTable();
+                    
+                    if (filteredData && filteredData.getNumberOfRows() > 0) {
+                        const range = getDateRangeFromData(filteredData, 4, 5);
+                        
+                        // Update the range filter's viewWindow
+                        const currentOptions = rangeFilter.getOptions();
+                        currentOptions.ui.chartOptions.hAxis.viewWindow = {
+                            min: range.minDate,
+                            max: range.maxDate
+                        };
+                        
+                        rangeFilter.setOptions(currentOptions);
+                        rangeFilter.draw();
+                    }
+                });
             }
         });
     </script>
