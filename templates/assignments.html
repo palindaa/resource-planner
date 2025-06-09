@@ -83,6 +83,30 @@
         </tbody>
     </table>
 </div>
+
+<div class="flex justify-center mt-4">
+  <nav class="inline-flex items-center -space-x-px">
+    {% if page > 1 %}
+      <a href="{{ url_for('assign', page=page-1) }}" class="px-3 py-1 border border-gray-300 rounded-l-lg hover:bg-gray-100">Previous</a>
+    {% else %}
+      <span class="px-3 py-1 border border-gray-300 rounded-l-lg text-gray-400 cursor-not-allowed">Previous</span>
+    {% endif %}
+
+    {% for p in range(1, total_pages+1) %}
+      {% if p == page %}
+        <span class="px-3 py-1 border-t border-b border-gray-300 bg-green-600 text-white">{{ p }}</span>
+      {% else %}
+        <a href="{{ url_for('assign', page=p) }}" class="px-3 py-1 border border-gray-300 hover:bg-gray-100">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+
+    {% if page < total_pages %}
+      <a href="{{ url_for('assign', page=page+1) }}" class="px-3 py-1 border border-gray-300 rounded-r-lg hover:bg-gray-100">Next</a>
+    {% else %}
+      <span class="px-3 py-1 border border-gray-300 rounded-r-lg text-gray-400 cursor-not-allowed">Next</span>
+    {% endif %}
+  </nav>
+</div>
 {% endif %}
 
 {% endblock %}

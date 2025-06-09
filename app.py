@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timedelta
 import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
+import math
 
 app = Flask(__name__)
 app.config['DATABASE'] = os.path.join(app.root_path, 'team_planner.db')
@@ -193,6 +194,12 @@ def assign(current_user):
         db.commit()
         return redirect(url_for('assign'))
 
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    total_assignments = db.execute('SELECT COUNT(*) FROM user_projects').fetchone()[0]
+    total_pages = math.ceil(total_assignments / per_page)
+
     # Get existing assignments
     assignments = db.execute('''
         SELECT user_projects.id, users.username, projects.name as project_name,
@@ -201,14 +208,17 @@ def assign(current_user):
         JOIN users ON user_projects.user_id = users.id
         JOIN projects ON user_projects.project_id = projects.id
         ORDER BY user_projects.start_date DESC
-    ''').fetchall()
+        LIMIT ? OFFSET ?
+    ''', (per_page, (page-1)*per_page)).fetchall()
 
     users = db.execute('SELECT * FROM users').fetchall()
     projects = db.execute('SELECT * FROM projects WHERE status = "Started"').fetchall()
     return render_template('assignments.html', 
                          users=users, 
                          projects=projects,
-                         assignments=assignments)
+                         assignments=assignments,
+                         page=page,
+                         total_pages=total_pages)
 
 @app.route('/edit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
 @token_required
