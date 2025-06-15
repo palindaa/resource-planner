@@ -6,8 +6,36 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link rel="icon" href="{{ url_for('static', filename='favico.png') }}" type="image/png">
     <title>Team Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#10B981',
+                        secondary: '#3B82F6',
+                        danger: '#EF4444',
+                        warning: '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .alert-success {
+            background-color: #D1FAE5;
+            color: #065F46;
+            border-color: #34D399;
+        }
+        
+        .alert-error {
+            background-color: #FEE2E2;
+            color: #B91C1C;
+            border-color: #F87171;
+        }
+    </style>
     <!-- <link rel="stylesheet" href="https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.css"> -->
     <!-- <script src="https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.js"></script> -->
 </head>
@@ -47,11 +75,29 @@
                        class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         Admin Users
                     </a>
-
+                    <form action="{{ url_for('logout') }}" method="post" class="inline ml-4">
+                        <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md text-sm font-medium transition-colors border border-red-200">
+                            Logout
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div id="flash-messages"
+             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4
+                    transition-opacity duration-500">
+          {% for category, message in messages %}
+            <div class="alert-{{ category }} p-4 rounded mb-4">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {% block content %}{% endblock %}
@@ -62,5 +108,17 @@
             <p>&copy; 2025 Resource Planner</p>
         </div>
     </footer>
+
+    <!-- auto-dismiss flash after 30s -->
+    <script>
+      setTimeout(function(){
+        var flash = document.getElementById('flash-messages');
+        if (!flash) return;
+        // fade out:
+        flash.style.opacity = '0';
+        // remove from DOM after fade completes:
+        setTimeout(function(){ flash.remove(); }, 500);
+      }, 3000);
+    </script>
 </body>
 </html>

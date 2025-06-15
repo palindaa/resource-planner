@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, g, make_response
+from flask import Flask, render_template, request, redirect, url_for, g, make_response, flash
 import sqlite3
 import os
 from datetime import datetime, timedelta
 import jwt
-from werkzeug.security import generate_password_hash, check_password_hash
+import bcrypt
 import math
+import random
+import string
 
 app = Flask(__name__)
 app.config['DATABASE'] = os.path.join(app.root_path, 'team_planner.db')
@@ -75,11 +77,10 @@ def login():
         return render_template('login.html', error='Invalid credentials')
     return render_template('login.html')
 
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
-    resp = make_response(redirect(url_for('login')))
-    resp.delete_cookie('token')
-    return resp
+    # Add your logout logic here (clear session, etc.)
+    return redirect(url_for('login'))
 
 @app.route('/admin-users', methods=['GET', 'POST'])
 @token_required
@@ -137,8 +138,19 @@ def users(current_user):
 @token_required
 def delete_user(current_user, user_id):
     db = get_db()
+    # Check if user has any assignments
+    assignment_count = db.execute(
+        'SELECT COUNT(*) FROM user_projects WHERE user_id = ?', 
+        (user_id,)
+    ).fetchone()[0]
+    
+    if assignment_count > 0:
+        flash('Cannot delete user: User has active assignments', 'error')
+        return redirect(url_for('users'))
+    
     db.execute('DELETE FROM users WHERE id = ?', (user_id,))
     db.commit()
+    flash('User deleted successfully', 'success')
     return redirect(url_for('users'))
 
 @app.route('/projects', methods=['GET', 'POST'])
@@ -194,22 +206,50 @@ def assign(current_user):
         db.commit()
         return redirect(url_for('assign'))
 
+    # Get filter parameters from request
+    user_filter = request.args.get('user_filter', '')
+    project_filter = request.args.get('project_filter', '')
+
     # Pagination
     page = request.args.get('page', 1, type=int)
     per_page = 10
-    total_assignments = db.execute('SELECT COUNT(*) FROM user_projects').fetchone()[0]
-    total_pages = math.ceil(total_assignments / per_page)
 
-    # Get existing assignments
-    assignments = db.execute('''
+    # Base query for assignments
+    query = '''
         SELECT user_projects.id, users.username, projects.name as project_name,
                user_projects.start_date, user_projects.end_date
         FROM user_projects
         JOIN users ON user_projects.user_id = users.id
         JOIN projects ON user_projects.project_id = projects.id
-        ORDER BY user_projects.start_date DESC
-        LIMIT ? OFFSET ?
-    ''', (per_page, (page-1)*per_page)).fetchall()
+    '''
+
+    # Build WHERE clause for filters
+    conditions = []
+    params = []
+
+    if user_filter:
+        conditions.append('user_projects.user_id = ?')
+        params.append(user_filter)
+    if project_filter:
+        conditions.append('user_projects.project_id = ?')
+        params.append(project_filter)
+
+    if conditions:
+        query += ' WHERE ' + ' AND '.join(conditions)
+
+    # Count total assignments (for pagination)
+    count_query = 'SELECT COUNT(*) FROM user_projects'
+    if conditions:
+        count_query += ' WHERE ' + ' AND '.join(conditions)
+    total_assignments = db.execute(count_query, params).fetchone()[0]
+    total_pages = math.ceil(total_assignments / per_page)
+
+    # Add ordering and pagination to the main query
+    query += ' ORDER BY user_projects.start_date DESC'
+    query += ' LIMIT ? OFFSET ?'
+    params.extend([per_page, (page-1)*per_page])
+
+    assignments = db.execute(query, params).fetchall()
 
     users = db.execute('SELECT * FROM users').fetchall()
     projects = db.execute('SELECT * FROM projects WHERE status = "Started"').fetchall()
@@ -218,7 +258,9 @@ def assign(current_user):
                          projects=projects,
                          assignments=assignments,
                          page=page,
-                         total_pages=total_pages)
+                         total_pages=total_pages,
+                         user_filter=user_filter,
+                         project_filter=project_filter)
 
 @app.route('/edit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
 @token_required
@@ -372,6 +414,54 @@ def dashboard(current_user):
     # Convert dates to ISO strings for JSON serialization
     date_sequence = [date.isoformat() for date in sorted(all_dates)]
     
+    # Calculate resource utilization for next 30 days
+    today = datetime.today().date()
+    end_date = today + timedelta(days=30)
+    
+    # Calculate total weekdays in next 30 days
+    total_weekdays = sum(1 for i in range(31) 
+                      if (today + timedelta(days=i)).weekday() < 5)
+    
+    # Get all assignments within next 30 days
+    assignments = db.execute('''
+        SELECT users.id, users.username, 
+               user_projects.start_date, user_projects.end_date
+        FROM user_projects
+        JOIN users ON user_projects.user_id = users.id
+        WHERE user_projects.start_date <= ? AND user_projects.end_date >= ?
+    ''', (end_date.isoformat(), today.isoformat())).fetchall()
+    
+    # Calculate utilization per user
+    user_utilization = {}
+    for user in db.execute('SELECT id, username FROM users').fetchall():
+        user_utilization[user['id']] = {
+            'username': user['username'],
+            'assigned_days': 0
+        }
+    
+    for assignment in assignments:
+        user_id = assignment['id']
+        start = max(today, datetime.strptime(assignment['start_date'], '%Y-%m-%d').date())
+        end = min(end_date, datetime.strptime(assignment['end_date'], '%Y-%m-%d').date())
+        
+        # Count assigned weekdays
+        assigned_days = sum(1 for i in range((end - start).days + 1)
+                         if (start + timedelta(days=i)).weekday() < 5)
+        
+        user_utilization[user_id]['assigned_days'] += assigned_days
+    
+    # Calculate utilization percentage
+    utilisation_data = []
+    for user_id, data in user_utilization.items():
+        utilisation = (data['assigned_days'] * 100) / total_weekdays if total_weekdays > 0 else 0
+        utilisation_data.append({
+            'username': data['username'],
+            'utilisation': round(utilisation, 2)
+        })
+    
+    # Sort by utilization (ascending)
+    utilisation_data.sort(key=lambda x: x['utilisation'])
+    
     return render_template('dashboard.html', 
                          active_projects=active_projects,
                          closed_projects=closed_projects,
@@ -381,7 +471,9 @@ def dashboard(current_user):
                          department_data=department_data,
                          project_allocation_data=project_allocation_data,
                          date_sequence=date_sequence,
-                         hours_datasets=hours_datasets)
+                         hours_datasets=hours_datasets,
+                         utilisation_data=utilisation_data,
+                         total_weekdays=total_weekdays)
 
 @app.route('/delete_assignment/<int:assignment_id>')
 @token_required
@@ -390,6 +482,72 @@ def delete_assignment(current_user, assignment_id):
     db.execute('DELETE FROM user_projects WHERE id = ?', (assignment_id,))
     db.commit()
     return redirect(url_for('assign'))
+
+@app.route('/edit_project/<int:project_id>', methods=['GET', 'POST'])
+@token_required
+def edit_project(current_user, project_id):
+    db = get_db()
+    project = db.execute('SELECT * FROM projects WHERE id = ?', (project_id,)).fetchone()
+    
+    if request.method == 'POST':
+        name = request.form['name']
+        description = request.form['description']
+        color = request.form['color']
+        
+        db.execute('''
+            UPDATE projects 
+            SET name = ?, description = ?, color = ?
+            WHERE id = ?
+        ''', (name, description, color, project_id))
+        db.commit()
+        return redirect(url_for('projects'))
+    
+    return render_template('edit_project.html', project=project)
+
+@app.route('/delete_project/<int:project_id>')
+@token_required
+def delete_project(current_user, project_id):
+    db = get_db()
+    # Check if project has any assignments
+    assignment_count = db.execute(
+        'SELECT COUNT(*) FROM user_projects WHERE project_id = ?', 
+        (project_id,)
+    ).fetchone()[0]
+    
+    if assignment_count > 0:
+        flash('Cannot delete project: Project has active assignments', 'error')
+        return redirect(url_for('projects'))
+    
+    # Delete the project
+    db.execute('DELETE FROM projects WHERE id = ?', (project_id,))
+    db.commit()
+    flash('Project deleted successfully', 'success')
+    return redirect(url_for('projects'))
+
+def generate_password_hash(password):
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def check_password_hash(hashed, password):
+    # Only try bcrypt if the hash looks like a bcrypt hash
+    if not (hashed.startswith('$2a$') or hashed.startswith('$2b$') or hashed.startswith('$2y$')):
+        # Not a bcrypt hash, always fail (or handle migration)
+        return False
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def reset_admin_passwords():
+    """Update all AdminUser passwords to random ones and print them."""
+    with app.app_context():
+        db = get_db()
+        users = db.execute('SELECT id, username FROM AdminUser').fetchall()
+        print("Resetting admin passwords:")
+        for user in users:
+            # Generate a random 10-character password
+            new_password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+            hashed = generate_password_hash(new_password)
+            db.execute('UPDATE AdminUser SET password = ? WHERE id = ?', (hashed, user['id']))
+            print(f"Username: {user['username']}, New Password: {new_password}")
+        db.commit()
+        print("All admin passwords have been reset.")
 
 if __name__ == '__main__':
     app.run(debug=True) 

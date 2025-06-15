@@ -13,6 +13,7 @@
             <div class="bg-white p-4 rounded-lg shadow">
                 <!-- Add dashboard container -->
                 <div id="dashboard_div">
+                    <div id="user_filter_div" style="height: 50px; width: 100%;"></div>
                     <div id="project_filter_div" style="height: 50px; width: 100%;"></div>
 
                     <label for="filter_div" style="font-family: Open Sans; margin-bottom: 4px; display: block;">
@@ -151,6 +152,24 @@
                     }
                 });
 
+                // Create user filter
+                const userFilter = new google.visualization.ControlWrapper({
+                    controlType: 'CategoryFilter',
+                    containerId: 'user_filter_div',
+                    options: {
+                        filterColumnIndex: 0,
+                        ui: {
+                            label: 'Employee',
+                            allowTyping: false,
+                            allowMultiple: true,
+                            allowNone: true,
+                            labelStyle: {fontName: 'Open Sans'},
+                            selectedItemStyle: {fontName: 'Open Sans'},
+                            cssClass: 'google-visualization-controls-label'
+                        }
+                    }
+                });
+
                 // Create project filter
                 const projectFilter = new google.visualization.ControlWrapper({
                     controlType: 'CategoryFilter',
@@ -189,29 +208,16 @@
                 });
 
                 // Establish dependencies and draw
-                dashboard.bind([projectFilter, rangeFilter], timelineChart);
+                dashboard.bind([userFilter, projectFilter, rangeFilter], timelineChart);
                 dashboard.draw(dataTable);
 
-                // Set the range filter state after drawing to ensure it shows the full range
-                // google.visualization.events.addListener(dashboard, 'ready', function() {
-                //     rangeFilter.setState({
-                //         range: {
-                //             start: range.minDate,
-                //             end: range.maxDate
-                //         }
-                //     });
-                //     rangeFilter.draw();
-                // });
-
-                // Update range viewWindow when project filter changes
-                google.visualization.events.addListener(projectFilter, 'statechange', function() {
-                    // Get filtered data from the timeline chart, not the filter
+                // Update range viewWindow when filters change
+                function updateRangeFilter() {
                     const filteredData = timelineChart.getDataTable();
                     
                     if (filteredData && filteredData.getNumberOfRows() > 0) {
                         const range = getDateRangeFromData(filteredData, 4, 5);
                         
-                        // Update the range filter's viewWindow
                         const currentOptions = rangeFilter.getOptions();
                         currentOptions.ui.chartOptions.hAxis.viewWindow = {
                             min: range.minDate,
@@ -221,7 +227,10 @@
                         rangeFilter.setOptions(currentOptions);
                         rangeFilter.draw();
                     }
-                });
+                }
+
+                google.visualization.events.addListener(projectFilter, 'statechange', updateRangeFilter);
+                google.visualization.events.addListener(userFilter, 'statechange', updateRangeFilter);
             }
         });
     </script>
