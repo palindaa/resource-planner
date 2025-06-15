@@ -433,12 +433,14 @@ def dashboard(current_user):
     
     # Calculate utilization per user
     user_utilization = {}
-    for user in db.execute('SELECT id, username FROM users').fetchall():
+    for user in db.execute('SELECT id, username, department FROM users').fetchall():
         user_utilization[user['id']] = {
             'username': user['username'],
-            'assigned_days': 0
+            'department': user['department'],
+            'assigned_days': 0,
+            'next_available': None  # Initialize next available date
         }
-    
+
     for assignment in assignments:
         user_id = assignment['id']
         start = max(today, datetime.strptime(assignment['start_date'], '%Y-%m-%d').date())
@@ -449,19 +451,59 @@ def dashboard(current_user):
                          if (start + timedelta(days=i)).weekday() < 5)
         
         user_utilization[user_id]['assigned_days'] += assigned_days
-    
+        
+        # Update next available date if this assignment ends later
+        if user_utilization[user_id]['next_available'] is None or end > user_utilization[user_id]['next_available']:
+            # Add 1 day to the end date to get next available
+            next_avail = end + timedelta(days=1)
+            # Skip weekends
+            while next_avail.weekday() >= 5:  # 5=Saturday, 6=Sunday
+                next_avail += timedelta(days=1)
+            user_utilization[user_id]['next_available'] = next_avail
+
     # Calculate utilization percentage
     utilisation_data = []
     for user_id, data in user_utilization.items():
         utilisation = (data['assigned_days'] * 100) / total_weekdays if total_weekdays > 0 else 0
+        next_avail = data['next_available'] or today  # Use today if no assignments
         utilisation_data.append({
             'username': data['username'],
-            'utilisation': round(utilisation, 2)
+            'department': data['department'],
+            'utilisation': round(utilisation, 2),
+            'next_available': next_avail.strftime('%Y-%m-%d')  # Format as string
         })
     
-    # Sort by utilization (ascending)
-    utilisation_data.sort(key=lambda x: x['utilisation'])
+    # Get department filter from request
+    dept_filter = request.args.get('dept_filter', '')
     
+    # Apply department filter
+    if dept_filter:
+        utilisation_data = [u for u in utilisation_data if u['department'] == dept_filter]
+    
+    # Sorting and pagination parameters
+    sort_by = request.args.get('sort', 'utilisation')
+    sort_order = request.args.get('order', 'asc')
+    page = request.args.get('page', 1, type=int)
+    per_page = 10  # Items per page
+
+    # Sort utilisation data
+    reverse_order = sort_order == 'desc'
+    if sort_by == 'username':
+        utilisation_data.sort(key=lambda x: x['username'], reverse=reverse_order)
+    elif sort_by == 'department':
+        utilisation_data.sort(key=lambda x: x['department'], reverse=reverse_order)
+    elif sort_by == 'next_available':
+        utilisation_data.sort(key=lambda x: x['next_available'], reverse=reverse_order)
+    else:  # Default sort by utilisation
+        utilisation_data.sort(key=lambda x: x['utilisation'], reverse=reverse_order)
+
+    # Pagination
+    total_items = len(utilisation_data)
+    total_pages = (total_items + per_page - 1) // per_page
+    start_idx = (page - 1) * per_page
+    end_idx = start_idx + per_page
+    paginated_data = utilisation_data[start_idx:end_idx]
+
     return render_template('dashboard.html', 
                          active_projects=active_projects,
                          closed_projects=closed_projects,
@@ -472,8 +514,14 @@ def dashboard(current_user):
                          project_allocation_data=project_allocation_data,
                          date_sequence=date_sequence,
                          hours_datasets=hours_datasets,
-                         utilisation_data=utilisation_data,
-                         total_weekdays=total_weekdays)
+                         utilisation_data=paginated_data,
+                         total_weekdays=total_weekdays,
+                         sort_by=sort_by,
+                         sort_order=sort_order,
+                         current_page=page,
+                         total_pages=total_pages,
+                         total_items=total_items,
+                         dept_filter=dept_filter)
 
 @app.route('/delete_assignment/<int:assignment_id>')
 @token_required
