@@ -466,11 +466,18 @@ def dashboard(current_user):
     for user_id, data in user_utilization.items():
         utilisation = (data['assigned_days'] * 100) / total_weekdays if total_weekdays > 0 else 0
         next_avail = data['next_available'] or today  # Use today if no assignments
+        
+        # Show "-" if not available in next 30 days
+        if next_avail > end_date:
+            next_avail_str = '-'
+        else:
+            next_avail_str = next_avail.strftime('%Y-%m-%d')
+
         utilisation_data.append({
             'username': data['username'],
             'department': data['department'],
             'utilisation': round(utilisation, 2),
-            'next_available': next_avail.strftime('%Y-%m-%d')  # Format as string
+            'next_available': next_avail_str  # Use formatted string
         })
     
     # Get department filter from request
