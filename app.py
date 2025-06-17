@@ -131,8 +131,19 @@ def users(current_user):
         ''', (username, department))
         db.commit()
     
-    users = db.execute('SELECT * FROM users').fetchall()
-    return render_template('users.html', users=users)
+    # Get department filter from query parameters
+    dept_filter = request.args.get('dept_filter', '')
+    
+    # Build query based on filter
+    if dept_filter:
+        users = db.execute('SELECT * FROM users WHERE department = ?', (dept_filter,)).fetchall()
+    else:
+        users = db.execute('SELECT * FROM users').fetchall()
+    
+    # Get distinct departments for filter dropdown
+    departments = db.execute('SELECT DISTINCT department FROM users').fetchall()
+    
+    return render_template('users.html', users=users, departments=departments, current_dept=dept_filter)
 
 @app.route('/delete_user/<int:user_id>')
 @token_required
@@ -578,6 +589,26 @@ def delete_project(current_user, project_id):
     db.commit()
     flash('Project deleted successfully', 'success')
     return redirect(url_for('projects'))
+
+@app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@token_required
+def edit_user(current_user, user_id):
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('users'))
+    if request.method == 'POST':
+        username = request.form['username']
+        department = request.form['department']
+        db.execute(
+            'UPDATE users SET username = ?, department = ? WHERE id = ?',
+            (username, department, user_id)
+        )
+        db.commit()
+        flash('User updated successfully', 'success')
+        return redirect(url_for('users'))
+    return render_template('edit_user.html', user=user)
 
 def generate_password_hash(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
