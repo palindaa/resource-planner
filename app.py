@@ -620,6 +620,7 @@ def check_password_hash(hashed, password):
         return False
     return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
 
+# python -c "from app import reset_admin_passwords; reset_admin_passwords()"
 def reset_admin_passwords():
     """Update all AdminUser passwords to random ones and print them."""
     with app.app_context():
