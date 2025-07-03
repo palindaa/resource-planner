@@ -636,5 +636,139 @@ def reset_admin_passwords():
         db.commit()
         print("All admin passwords have been reset.")
 
+# New salary management routes
+@app.route('/salaries', methods=['GET', 'POST'])
+@token_required
+def salaries(current_user):
+    db = get_db()
+    
+    if request.method == 'POST':
+        user_id = request.form['user_id']
+        salary = request.form['salary']
+        effective_date = request.form['effective_date']
+        
+        db.execute('''
+            INSERT INTO salaries (user_id, salary, effective_date)
+            VALUES (?, ?, ?)
+        ''', (user_id, salary, effective_date))
+        db.commit()
+        flash('Salary added successfully', 'success')
+    
+    # Get all salaries with user names
+    salaries = db.execute('''
+        SELECT salaries.id, salaries.user_id, salaries.salary, salaries.effective_date, users.username 
+        FROM salaries
+        JOIN users ON salaries.user_id = users.id
+        ORDER BY salaries.effective_date DESC
+    ''').fetchall()
+    
+    users = db.execute('SELECT * FROM users').fetchall()
+    return render_template('salaries.html', salaries=salaries, users=users)
+
+@app.route('/delete_salary/<int:salary_id>')
+@token_required
+def delete_salary(current_user, salary_id):
+    db = get_db()
+    db.execute('DELETE FROM salaries WHERE id = ?', (salary_id,))
+    db.commit()
+    flash('Salary record deleted successfully', 'success')
+    return redirect(url_for('salaries'))
+
+# Add custom filter for template
+@app.template_filter('string_to_date')
+def string_to_date(s):
+    return datetime.strptime(s, '%Y-%m-%d').date() 
+
+@app.route('/project-costs')
+@token_required
+def project_costs(current_user):
+    db = get_db()
+    
+    # Get all projects
+    projects = db.execute('SELECT * FROM projects').fetchall()
+    
+    # Get all assignments
+    assignments = db.execute('''
+        SELECT user_projects.*, users.username, projects.name as project_name
+        FROM user_projects
+        JOIN users ON user_projects.user_id = users.id
+        JOIN projects ON user_projects.project_id = projects.id
+    ''').fetchall()
+    
+    # Get all salaries (latest salary per user)
+    salaries = {}
+    for row in db.execute('''
+        SELECT s1.* 
+        FROM salaries s1
+        LEFT JOIN salaries s2 
+            ON s1.user_id = s2.user_id 
+            AND s1.effective_date < s2.effective_date
+        WHERE s2.id IS NULL
+    ''').fetchall():
+        salaries[row['user_id']] = row['salary']
+    
+    # Calculate costs for each project
+    project_costs = {}
+    for project in projects:
+        project_costs[project['id']] = {
+            'name': project['name'],
+            'status': project['status'],
+            'current_cost': 0.0,
+            'estimated_cost': 0.0
+        }
+    
+    # Helper function to calculate business days
+    def business_days(start, end):
+        days = (end - start).days + 1
+        full_weeks = days // 7
+        extra_days = days % 7
+        business_days = full_weeks * 5
+        # Add extra days excluding weekends
+        for i in range(extra_days):
+            if (start + timedelta(days=i)).weekday() < 5:
+                business_days += 1
+        return business_days
+    
+    today = datetime.today().date()
+    
+    for assignment in assignments:
+        start_date = datetime.strptime(assignment['start_date'], '%Y-%m-%d').date()
+        end_date = datetime.strptime(assignment['end_date'], '%Y-%m-%d').date()
+        
+        # Get user's salary
+        salary = salaries.get(assignment['user_id'], 0)
+        
+        # Calculate daily rate (assuming 22 working days/month)
+        daily_rate = salary / 22 if salary else 0
+        
+        # Calculate total business days in assignment
+        total_days = business_days(start_date, end_date)
+        
+        # Calculate actual days worked so far
+        if today < start_date:
+            actual_days = 0
+        elif today > end_date:
+            actual_days = total_days
+        else:
+            actual_days = business_days(start_date, today)
+        
+        # Calculate costs
+        current_cost = actual_days * daily_rate
+        estimated_cost = total_days * daily_rate
+        
+        # Add to project totals
+        project_id = assignment['project_id']
+        project_costs[project_id]['current_cost'] += current_cost
+        project_costs[project_id]['estimated_cost'] += estimated_cost
+    
+    return render_template('project_costing.html', 
+                         projects=project_costs.values(),
+                         currency=currency_filter)
+
+# Add this after the existing template filter
+@app.template_filter('currency')
+def currency_filter(value):
+    return '${:,.2f}'.format(value)
+
 if __name__ == '__main__':
     app.run(debug=True) 

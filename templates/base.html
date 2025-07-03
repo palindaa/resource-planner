@@ -56,26 +56,50 @@
                        class="{{ 'text-green-700' if request.path == '/' else 'text-gray-600' }} hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         Dashboard
                     </a>
-                    <a href="{{ url_for('resource_allocation') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Resource Timeline
-                    </a>
-                    <a href="{{ url_for('users') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Resources
-                    </a>
-                    <a href="{{ url_for('projects') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Projects
-                    </a>
-                    <a href="{{ url_for('assign') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Assignments
-                    </a>
-                    <a href="{{ url_for('admin_users') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Admin Users
-                    </a>
+                    
+                    <!-- Resource Management Dropdown -->
+                    <div class="relative group">
+                        <button class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            Resource Management
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute hidden group-hover:block bg-white shadow-md rounded-md w-48 z-10">
+                            <a href="{{ url_for('resource_allocation') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Resource Timeline</a>
+                            <a href="{{ url_for('users') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Resources</a>
+                            <a href="{{ url_for('assign') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Assignments</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Financials Dropdown -->
+                    <div class="relative group">
+                        <button class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            Financials
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute hidden group-hover:block bg-white shadow-md rounded-md w-48 z-10">
+                            <a href="{{ url_for('salaries') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Salaries</a>
+                            <a href="{{ url_for('project_costs') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Project Costs</a>
+                        </div>
+                    </div>
+                    
+                    <!-- Settings Dropdown -->
+                    <div class="relative group">
+                        <button class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center">
+                            Settings
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="absolute hidden group-hover:block bg-white shadow-md rounded-md w-48 z-10">
+                            <a href="{{ url_for('projects') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Projects</a>
+                            <a href="{{ url_for('admin_users') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Admin Users</a>
+                        </div>
+                    </div>
+                    
                     <form action="{{ url_for('logout') }}" method="post" class="inline ml-4">
                         <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md text-sm font-medium transition-colors border border-red-200">
                             Logout
@@ -102,26 +126,50 @@
                    class="{{ 'text-green-700' if request.path == '/' else 'text-gray-600' }} hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
                     Dashboard
                 </a>
-                <a href="{{ url_for('resource_allocation') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Resource Timeline
-                </a>
-                <a href="{{ url_for('users') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Resources
-                </a>
-                <a href="{{ url_for('projects') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Projects
-                </a>
-                <a href="{{ url_for('assign') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Assignments
-                </a>
-                <a href="{{ url_for('admin_users') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Admin Users
-                </a>
+                
+                <!-- Resource Management Dropdown -->
+                <div>
+                    <button onclick="toggleMobileDropdown('resource-management')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-green-700 flex justify-between items-center">
+                        <span>Resource Management</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="mobile-resource-management" class="hidden pl-4">
+                        <a href="{{ url_for('resource_allocation') }}" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-green-700">Resource Timeline</a>
+                        <a href="{{ url_for('users') }}" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-green-700">Resources</a>
+                        <a href="{{ url_for('assign') }}" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-green-700">Assignments</a>
+                    </div>
+                </div>
+                
+                <!-- Financials Dropdown -->
+                <div>
+                    <button onclick="toggleMobileDropdown('financials')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-green-700 flex justify-between items-center">
+                        <span>Financials</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="mobile-financials" class="hidden pl-4">
+                        <a href="{{ url_for('salaries') }}" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-green-700">Salaries</a>
+                        <a href="{{ url_for('project_costs') }}" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-green-700">Project Costs</a>
+                    </div>
+                </div>
+                
+                <!-- Settings Dropdown -->
+                <div>
+                    <button onclick="toggleMobileDropdown('settings')" class="w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-600 hover:text-green-700 flex justify-between items-center">
+                        <span>Settings</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div id="mobile-settings" class="hidden pl-4">
+                        <a href="{{ url_for('projects') }}" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-green-700">Projects</a>
+                        <a href="{{ url_for('admin_users') }}" class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-green-700">Admin Users</a>
+                    </div>
+                </div>
+                
                 <form action="{{ url_for('logout') }}" method="post" class="block">
                     <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors border border-red-200">
                         Logout
@@ -177,6 +225,16 @@
                 mobileMenu.classList.add('hidden');
             }
         });
+        
+        // Toggle mobile dropdowns
+        function toggleMobileDropdown(id) {
+            var dropdown = document.getElementById('mobile-' + id);
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+            } else {
+                dropdown.classList.add('hidden');
+            }
+        }
     </script>
 </body>
 </html>

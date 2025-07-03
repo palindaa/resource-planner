@@ -29,3 +29,11 @@ CREATE TABLE IF NOT EXISTS AdminUser (
     username TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL
 ); 
+
+CREATE TABLE IF NOT EXISTS salaries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    salary REAL NOT NULL,
+    effective_date DATE NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+); 
