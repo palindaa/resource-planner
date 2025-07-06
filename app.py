@@ -126,8 +126,8 @@ def users(current_user):
         department = request.form['department']
         
         db.execute('''
-            INSERT INTO users (username, department)
-            VALUES (?, ?)
+            INSERT INTO users (username, department, status)
+            VALUES (?, ?, 'active')
         ''', (username, department))
         db.commit()
     
@@ -262,7 +262,8 @@ def assign(current_user):
 
     assignments = db.execute(query, params).fetchall()
 
-    users = db.execute('SELECT * FROM users').fetchall()
+    # Only show active users for new assignments
+    users = db.execute('SELECT * FROM users WHERE status = "active"').fetchall()
     projects = db.execute('SELECT * FROM projects WHERE status = "Started"').fetchall()
     return render_template('assignments.html', 
                          users=users, 
@@ -317,6 +318,7 @@ def resource_allocation(current_user):
         FROM user_projects
         JOIN users ON user_projects.user_id = users.id
         JOIN projects ON user_projects.project_id = projects.id
+        WHERE users.status = 'active'
         ORDER BY users.username, user_projects.start_date
     ''').fetchall()
 
@@ -433,23 +435,25 @@ def dashboard(current_user):
     total_weekdays = sum(1 for i in range(31) 
                       if (today + timedelta(days=i)).weekday() < 5)
     
-    # Get all assignments within next 30 days
+    # Get all assignments within next 30 days - only for active users
     assignments = db.execute('''
         SELECT users.id, users.username, 
                user_projects.start_date, user_projects.end_date
         FROM user_projects
         JOIN users ON user_projects.user_id = users.id
-        WHERE user_projects.start_date <= ? AND user_projects.end_date >= ?
+        WHERE user_projects.start_date <= ? 
+          AND user_projects.end_date >= ?
+          AND users.status = 'active'  -- Only include active users
     ''', (end_date.isoformat(), today.isoformat())).fetchall()
     
-    # Calculate utilization per user
+    # Calculate utilization per user - only for active users
     user_utilization = {}
-    for user in db.execute('SELECT id, username, department FROM users').fetchall():
+    for user in db.execute('SELECT id, username, department FROM users WHERE status = "active"').fetchall():
         user_utilization[user['id']] = {
             'username': user['username'],
             'department': user['department'],
             'assigned_days': 0,
-            'next_available': None  # Initialize next available date
+            'next_available': None
         }
 
     for assignment in assignments:
@@ -590,6 +594,22 @@ def delete_project(current_user, project_id):
     flash('Project deleted successfully', 'success')
     return redirect(url_for('projects'))
 
+
+@app.route('/toggle_user_status/<int:user_id>')
+@token_required
+def toggle_user_status(current_user, user_id):
+    db = get_db()
+    user = db.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('users'))
+    
+    new_status = 'inactive' if user['status'] == 'active' else 'active'
+    db.execute('UPDATE users SET status = ? WHERE id = ?', (new_status, user_id))
+    db.commit()
+    flash(f'User status changed to {new_status}', 'success')
+    return redirect(url_for('users'))
+
 @app.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @token_required
 def edit_user(current_user, user_id):
@@ -601,14 +621,15 @@ def edit_user(current_user, user_id):
     if request.method == 'POST':
         username = request.form['username']
         department = request.form['department']
+        status = request.form['status']
         db.execute(
-            'UPDATE users SET username = ?, department = ? WHERE id = ?',
-            (username, department, user_id)
+            'UPDATE users SET username = ?, department = ?, status = ? WHERE id = ?',
+            (username, department, status, user_id)
         )
         db.commit()
         flash('User updated successfully', 'success')
         return redirect(url_for('users'))
-    return render_template('edit_user.html', user=user)
+    return render_template('edit_user.html', user=user) 
 
 def generate_password_hash(password):
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
@@ -635,6 +656,20 @@ def reset_admin_passwords():
             print(f"Username: {user['username']}, New Password: {new_password}")
         db.commit()
         print("All admin passwords have been reset.")
+
+def migrate_db():
+    with app.app_context():
+        db = get_db()
+        # Check if status column exists
+        cursor = db.execute("PRAGMA table_info(users)")
+        columns = [row['name'] for row in cursor.fetchall()]
+        if 'status' not in columns:
+            db.execute('ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT "active"')
+            db.commit()
+
+# Run migration at startup
+with app.app_context():
+    migrate_db()
 
 if __name__ == '__main__':
     app.run(debug=True) 
