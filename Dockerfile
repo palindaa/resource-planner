@@ -7,10 +7,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN apt-get update && apt-get install -y cron awscli
+RUN apt-get update && apt-get install -y cron awscli nano
 COPY backup.sh /app/backup.sh
 RUN chmod +x /app/backup.sh
-RUN (crontab -l 2>/dev/null; echo "0 */2 * * * /app/backup.sh") | crontab -
+RUN (crontab -l 2>/dev/null; echo "0 */2 * * * /app/backup.sh >> /var/log/cron.log 2>&1") | crontab -
 
 EXPOSE 5000
 
