@@ -6,6 +6,9 @@ services:
     ports:
       - "5000:5000"
     environment:
+      - FLASK_APP=costing_app.py  # Set the Flask app to costing_app
+    command: bash -c "cron && flask run --host=0.0.0.0"  # Keep existing cron setup
+    environment:
       - FLASK_APP=app.py
       - FLASK_ENV=production
       - AWS_ACCESS_KEY_ID=your_access_key
