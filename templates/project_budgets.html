@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Project Budgets</h2>
+        
+        <form method="POST" class="space-y-4">
+            <div>
+                <label for="project_id" class="block text-sm font-medium text-gray-700">Project</label>
+                <select id="project_id" name="project_id" required
+                        class="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+                    <option value="">Select Project</option>
+                    {% for project in projects %}
+                        <option value="{{ project.id }}">{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div>
+                <label for="budget" class="block text-sm font-medium text-gray-700">Budget ($)</label>
+                <input type="number" step="0.01" id="budget" name="budget" required
+                       class="mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            </div>
+            
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                Save Budget
+            </button>
+        </form>
+        
+        <hr class="my-6">
+        
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Current Budgets</h3>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Budget</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for budget in budgets %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ budget.project_name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ budget.budget | currency }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm flex space-x-2">
+                                <a href="{{ url_for('edit_budget', budget_id=budget.id) }}" 
+                                   class="p-1.5 rounded-md text-blue-600 hover:bg-blue-100 transition-colors"
+                                   title="Edit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                    </svg>
+                                </a>
+                                <a href="{{ url_for('delete_budget', budget_id=budget.id) }}" 
+                                   class="p-1.5 rounded-md text-red-600 hover:bg-red-100 transition-colors"
+                                   title="Delete"
+                                   onclick="return confirm('Are you sure you want to delete this budget?')">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </a>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="3" class="px-6 py-4 text-sm text-gray-500 text-center">No budgets set</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Create a mapping of project_id to budget
+    var projectBudgets = {};
+    {% for budget in budgets %}
+        projectBudgets[{{ budget.project_id }}] = {{ budget.budget }};
+    {% endfor %}
+
+    // Get the select and input elements
+    var projectSelect = document.getElementById('project_id');
+    var budgetInput = document.getElementById('budget');
+
+    // When the project selection changes
+    projectSelect.addEventListener('change', function() {
+        var projectId = this.value;
+        if (projectId in projectBudgets) {
+            budgetInput.value = projectBudgets[projectId];
+        } else {
+            budgetInput.value = ''; // Clear if no budget set
+        }
+    });
+</script>
+{% endblock %} 
