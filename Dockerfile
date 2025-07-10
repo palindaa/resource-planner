@@ -14,4 +14,4 @@ RUN (crontab -l 2>/dev/null; echo "0 */2 * * * /app/backup.sh >> /var/log/cron.l
 
 EXPOSE 5001
 
-CMD cron && flask run --host=0.0.0.0
+CMD cron && flask run --host=0.0.0.0 --port=5001
