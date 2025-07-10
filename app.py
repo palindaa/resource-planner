@@ -621,7 +621,8 @@ def edit_user(current_user, user_id):
     if request.method == 'POST':
         username = request.form['username']
         department = request.form['department']
-        status = request.form['status']
+        # Use get() with default value to avoid KeyError
+        status = request.form.get('status', user['status'])
         db.execute(
             'UPDATE users SET username = ?, department = ?, status = ? WHERE id = ?',
             (username, department, status, user_id)
