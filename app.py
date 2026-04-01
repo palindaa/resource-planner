@@ -131,19 +131,41 @@ def users(current_user):
         ''', (username, department))
         db.commit()
     
-    # Get department filter from query parameters
+    # Get filter and sort parameters
     dept_filter = request.args.get('dept_filter', '')
-    
-    # Build query based on filter
+    name_filter = request.args.get('name_filter', '')
+    status_filter = request.args.get('status_filter', '')
+    sort_by = request.args.get('sort', 'username')
+    sort_order = request.args.get('order', 'asc')
+
+    # Build query with filters
+    query = 'SELECT * FROM users WHERE 1=1'
+    params = []
+
     if dept_filter:
-        users = db.execute('SELECT * FROM users WHERE department = ?', (dept_filter,)).fetchall()
-    else:
-        users = db.execute('SELECT * FROM users').fetchall()
-    
+        query += ' AND department = ?'
+        params.append(dept_filter)
+    if name_filter:
+        query += ' AND username LIKE ?'
+        params.append(f'%{name_filter}%')
+    if status_filter:
+        query += ' AND status = ?'
+        params.append(status_filter)
+
+    # Sorting
+    allowed_sorts = {'username': 'username', 'department': 'department', 'status': 'status'}
+    sort_col = allowed_sorts.get(sort_by, 'username')
+    order = 'DESC' if sort_order == 'desc' else 'ASC'
+    query += f' ORDER BY {sort_col} {order}'
+
+    users = db.execute(query, params).fetchall()
+
     # Get distinct departments for filter dropdown
     departments = db.execute('SELECT DISTINCT department FROM users').fetchall()
-    
-    return render_template('users.html', users=users, departments=departments, current_dept=dept_filter)
+
+    return render_template('users.html', users=users, departments=departments,
+                         current_dept=dept_filter, name_filter=name_filter,
+                         status_filter=status_filter, sort_by=sort_by, sort_order=sort_order)
 
 @app.route('/delete_user/<int:user_id>')
 @token_required
@@ -197,6 +219,15 @@ def close_project(current_user, project_id):
     db = get_db()
     db.execute('UPDATE projects SET status = "Closed" WHERE id = ?', (project_id,))
     db.commit()
+    return redirect(url_for('projects'))
+
+@app.route('/reactivate_project/<int:project_id>')
+@token_required
+def reactivate_project(current_user, project_id):
+    db = get_db()
+    db.execute('UPDATE projects SET status = "Started" WHERE id = ?', (project_id,))
+    db.commit()
+    flash('Project reactivated successfully', 'success')
     return redirect(url_for('projects'))
 
 @app.route('/assign', methods=['GET', 'POST'])
@@ -262,12 +293,18 @@ def assign(current_user):
 
     assignments = db.execute(query, params).fetchall()
 
-    # Only show active users for new assignments
+    # All users/projects for filter dropdowns (so inactive/closed assignments are findable)
+    all_users = db.execute('SELECT * FROM users').fetchall()
+    all_projects = db.execute('SELECT * FROM projects').fetchall()
+
+    # Only active users and started projects for the new assignment form
     users = db.execute('SELECT * FROM users WHERE status = "active"').fetchall()
     projects = db.execute('SELECT * FROM projects WHERE status = "Started"').fetchall()
-    return render_template('assignments.html', 
-                         users=users, 
+    return render_template('assignments.html',
+                         users=users,
                          projects=projects,
+                         all_users=all_users,
+                         all_projects=all_projects,
                          assignments=assignments,
                          page=page,
                          total_pages=total_pages,
@@ -288,7 +325,7 @@ def edit_assignment(current_user, assignment_id):
 
     if request.method == 'POST':
         db.execute('''
-            UPDATE user_projects 
+            UPDATE user_projects
             SET start_date = ?, end_date = ?
             WHERE id = ?
         ''', (
@@ -297,14 +334,20 @@ def edit_assignment(current_user, assignment_id):
             assignment_id
         ))
         db.commit()
-        return redirect(url_for('assign'))
+        return redirect(url_for('assign',
+                                user_filter=request.form.get('ret_user_filter', ''),
+                                project_filter=request.form.get('ret_project_filter', ''),
+                                page=request.form.get('ret_page', 1)))
 
     users = db.execute('SELECT * FROM users').fetchall()
     projects = db.execute('SELECT * FROM projects').fetchall()
     return render_template('edit_assignment.html',
                          assignment=assignment,
                          users=users,
-                         projects=projects)
+                         projects=projects,
+                         user_filter=request.args.get('user_filter', ''),
+                         project_filter=request.args.get('project_filter', ''),
+                         page=request.args.get('page', 1))
 
 @app.route('/resource-allocation')
 @token_required
@@ -363,18 +406,21 @@ def dashboard(current_user):
     ''').fetchall()
     
     project_allocation_data = db.execute('''
-        SELECT projects.name, COUNT(DISTINCT user_id) as user_count
+        SELECT projects.name, projects.status, projects.color, COUNT(DISTINCT user_id) as user_count
         FROM user_projects
         JOIN projects ON user_projects.project_id = projects.id
-        GROUP BY projects.name
+        GROUP BY projects.id
     ''').fetchall()
+
+    project_allocation_list = [{'name': p['name'], 'status': p['status'], 'color': p['color'], 'user_count': p['user_count']} for p in project_allocation_data]
 
     # Get project timeline data
     assignments = db.execute('''
-        SELECT 
+        SELECT
             projects.id as project_id,
             projects.name,
             projects.color,
+            projects.status,
             user_projects.start_date,
             user_projects.end_date
         FROM user_projects
@@ -403,8 +449,9 @@ def dashboard(current_user):
     # Create sorted list of all unique dates
     date_sequence = sorted(all_dates)
     
-    # Create a dictionary of project colors
+    # Create dictionaries of project colors and statuses
     project_colors = {project['name']: project['color'] for project in assignments}
+    project_statuses = {project['name']: project['status'] for project in assignments}
 
     # Prepare chart data
     hours_datasets = []
@@ -421,7 +468,8 @@ def dashboard(current_user):
             'data': [date_counts[date] for date in date_sequence],
             'borderColor': color,
             'tension': 0.4,
-            'fill': False
+            'fill': False,
+            'status': project_statuses.get(project, 'Unknown')
         })
 
     # Convert dates to ISO strings for JSON serialization
@@ -495,9 +543,14 @@ def dashboard(current_user):
             'next_available': next_avail_str  # Use formatted string
         })
     
-    # Get department filter from request
+    # Get filters from request
     dept_filter = request.args.get('dept_filter', '')
-    
+    name_filter = request.args.get('name_filter', '')
+
+    # Apply name filter
+    if name_filter:
+        utilisation_data = [u for u in utilisation_data if name_filter.lower() in u['username'].lower()]
+
     # Apply department filter
     if dept_filter:
         utilisation_data = [u for u in utilisation_data if u['department'] == dept_filter]
@@ -526,7 +579,7 @@ def dashboard(current_user):
     end_idx = start_idx + per_page
     paginated_data = utilisation_data[start_idx:end_idx]
 
-    return render_template('dashboard.html', 
+    return render_template('dashboard.html',
                          active_projects=active_projects,
                          closed_projects=closed_projects,
                          queued_projects=queued_projects,
@@ -534,6 +587,7 @@ def dashboard(current_user):
                          total_users=total_users,
                          department_data=department_data,
                          project_allocation_data=project_allocation_data,
+                         project_allocation_list=project_allocation_list,
                          date_sequence=date_sequence,
                          hours_datasets=hours_datasets,
                          utilisation_data=paginated_data,
@@ -543,7 +597,8 @@ def dashboard(current_user):
                          current_page=page,
                          total_pages=total_pages,
                          total_items=total_items,
-                         dept_filter=dept_filter)
+                         dept_filter=dept_filter,
+                         name_filter=name_filter)
 
 @app.route('/delete_assignment/<int:assignment_id>')
 @token_required
@@ -551,7 +606,10 @@ def delete_assignment(current_user, assignment_id):
     db = get_db()
     db.execute('DELETE FROM user_projects WHERE id = ?', (assignment_id,))
     db.commit()
-    return redirect(url_for('assign'))
+    return redirect(url_for('assign',
+                            user_filter=request.args.get('user_filter', ''),
+                            project_filter=request.args.get('project_filter', ''),
+                            page=request.args.get('page', 1)))
 
 @app.route('/edit_project/<int:project_id>', methods=['GET', 'POST'])
 @token_required
