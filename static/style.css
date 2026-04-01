@@ -1,105 +1,157 @@
-/* Instead of custom CSS, you'll use Tailwind classes directly in HTML */
+/* ── Custom utility classes matching leave-app design language ── */
 
-/* body styles → apply to body or container div */
-/* font-family: Arial, sans-serif; → font-sans */
-/* margin: 0 auto; → mx-auto */
-/* padding: 20px; → p-5 */
-
-/* nav styles → apply to nav element */
-/* margin-bottom: 20px; → mb-5 */
-/* padding: 10px; → p-2.5 */
-/* background-color: #f0f0f0; → bg-gray-100 */
-
-/* nav a styles → apply to nav links */
-/* margin-right: 15px; → mr-4 */
-/* text-decoration: none; → no-underline */
-/* color: #333; → text-gray-700 */
-
-/* form styles → apply to form elements */
-/* margin-bottom: 20px; → mb-5 */
-
-/* input, select, textarea → apply to these elements */
-/* margin: 5px; → m-1 */
-/* padding: 8px; → p-2 */
-/* display: block; → block */
-
-/* button styles → apply to button elements */
-/* padding: 8px 15px; → px-4 py-2 */
-/* background-color: #4CAF50; → bg-green-500 */
-/* color: white; → text-white */
-/* border: none; → border-none */
-/* cursor: pointer; → cursor-pointer */
-
-/* button:hover → hover:bg-green-600 */
-
-/* ul styles → apply to ul elements */
-/* list-style-type: none; → list-none */
-/* padding: 0; → p-0 */
-
-/* li styles → apply to li elements */
-/* padding: 10px; → p-2.5 */
-/* margin: 5px 0; → my-1 */
-/* background-color: #f8f8f8; → bg-gray-50 */
-
-body {
-    font-family: Arial, sans-serif;
-    /* max-width: 800px; */
-    margin: 0 auto;
-    padding: 20px;
+/* Accent brush line at the top of the page */
+.accent-brush-line {
+    height: 3px;
+    background: linear-gradient(90deg, #0d9488 0%, #0ea5e9 50%, #6366f1 100%);
 }
 
-nav {
-    margin-bottom: 20px;
-    padding: 10px;
-    background-color: #f0f0f0;
-}
-
-nav a {
-    margin-right: 15px;
-    text-decoration: none;
-    color: #333;
-}
-
-form {
-    margin-bottom: 20px;
-}
-
-input, select, textarea {
-    margin: 5px;
-    padding: 8px;
-    display: block;
-}
-
-button {
-    padding: 8px 15px;
-    background-color: #4CAF50;
-    color: white;
+/* Primary button */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #0d9488;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease;
     border: none;
     cursor: pointer;
 }
-
-button:hover {
-    background-color: #45a049;
+.btn-primary:hover {
+    background-color: #0f766e;
+    box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.25);
 }
 
-ul {
-    list-style-type: none;
-    padding: 0;
+/* Secondary / outline button */
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #475569;
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+.btn-secondary:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
 }
 
-li {
-    padding: 10px;
-    margin: 5px 0;
-    background-color: #f8f8f8;
-} 
-
-.hr-9 {
-    height: 9rem;
+/* Danger button */
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #ef4444;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease;
+    border: none;
+    cursor: pointer;
+}
+.btn-danger:hover {
+    background-color: #dc2626;
 }
 
-.goog-container-horizontal{
-    border: 1px solid gray;
-    padding: 0px 5px;
-    border-radius: 3px;
-    margin-left: 5px;
+/* Card component */
+.card {
+    background-color: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
 }
+
+/* Flash message styles */
+.alert-success {
+    background-color: #f0fdfa;
+    color: #134e4a;
+    border: 1px solid #99f6e4;
+    border-radius: 0.5rem;
+}
+
+.alert-error {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+}
+
+/* Nav active indicator */
+.nav-active-indicator {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #0d9488;
+    border-radius: 1px;
+}
+
+/* Mobile slide-out overlay */
+.mobile-menu-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    z-index: 50;
+    transition: opacity 0.2s ease;
+}
+
+.mobile-menu-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 16rem;
+    background-color: #fff;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    z-index: 51;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Smooth scrollbar for custom legends */
+.custom-scrollbar::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 2px;
+}
+
+/* Table hover effect */
+.table-row-hover:hover {
+    background-color: #f8fafc;
+}
+
+/* Status badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    line-height: 1.25rem;
+}
+.badge-active { background-color: #f0fdfa; color: #0d9488; }
+.badge-inactive { background-color: #fef2f2; color: #ef4444; }
+.badge-queued { background-color: #eff6ff; color: #3b82f6; }
+.badge-started { background-color: #f0fdfa; color: #0d9488; }
+.badge-closed { background-color: #f1f5f9; color: #64748b; }

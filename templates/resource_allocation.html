@@ -1,240 +1,347 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="bg-white rounded-xl shadow-lg p-6 mb-6">
-    <div class="mb-8 border-b pb-4">
-        <h1 class="text-3xl font-bold text-gray-800">Resource Allocation</h1>
-        <p class="mt-2 text-sm text-gray-600">View-only timeline of employee assignments</p>
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+    <div class="mb-6 border-b pb-4">
+        <h1 class="text-3xl font-bold text-slate-800">Resource Allocation</h1>
+        <p class="mt-1 text-sm text-slate-500">Interactive timeline of employee project assignments</p>
     </div>
 
-    <div class="flex">
-        <!-- Gantt Chart Column -->
-        <div class="flex-1 overflow-x-auto">
-            <div class="bg-white p-4 rounded-lg shadow">
-                <!-- Add dashboard container -->
-                <div id="dashboard_div">
-                    <div id="user_filter_div" style="height: 50px; width: 100%;"></div>
-                    <div id="project_filter_div" style="height: 50px; width: 100%;"></div>
-
-                    <label for="filter_div" style="font-family: Open Sans; margin-bottom: 4px; display: block;">
-                        Select End Date Range:
-                      </label>
-                    <div id="filter_div" style="height: 50px; width: 100%;"></div>
-                    <div id="timeline" style="height: 100%"></div>
-                </div>
+    <!-- Filters -->
+    <div class="bg-slate-50 rounded-xl p-5 mb-6">
+        <div class="flex flex-wrap items-end gap-4">
+            <!-- Employee Search -->
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Employee</label>
+                <input type="text" id="tlEmployeeFilter" placeholder="Search by name..."
+                       class="w-52 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder-slate-400">
             </div>
+
+            <!-- Department Filter -->
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Department</label>
+                <select id="tlDeptFilter"
+                        class="w-44 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <option value="">All Departments</option>
+                </select>
+            </div>
+
+            <!-- Project Status Filter -->
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
+                <select id="tlStatusFilter"
+                        class="w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <option value="all">All Projects</option>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+            </div>
+
+            <!-- Project Filter -->
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Project</label>
+                <select id="tlProjectFilter"
+                        class="w-52 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <option value="">All Projects</option>
+                </select>
+            </div>
+
+            <!-- Date Range -->
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">From</label>
+                <input type="date" id="tlStartDate"
+                       class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">To</label>
+                <input type="date" id="tlEndDate"
+                       class="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+            </div>
+
+            <button onclick="resetTimelineFilters()"
+                    class="px-4 py-2 bg-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-300 transition-colors">
+                Reset
+            </button>
+        </div>
+
+        <!-- Summary -->
+        <div class="mt-3 flex items-center gap-4 text-xs text-slate-400">
+            <span id="tlSummary"></span>
         </div>
     </div>
 
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <style>
-        .google-visualization-controls-label {
-            font-family: 'Open Sans', sans-serif !important;
-        }
+    <!-- Timeline Chart -->
+    <div id="timelineChart"></div>
 
-        .goog-container-horizontal{
-            border: 1px solid gray;
-            padding: 0px 5px;
-            border-radius: 3px;
-            margin-left: 5px;
-        }
-    </style>
-    <script>
+    {% if not users %}
+        <p class="text-slate-400 text-center py-12 text-sm">No assignments found for active users.</p>
+    {% endif %}
+</div>
 
-        function getDateRangeFromData(dataTable, startCol = 4, endCol = 5) {
-            let minDate = null;
-            let maxDate = null;
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
 
-            for (let i = 0; i < dataTable.getNumberOfRows(); i++) {
-                const start = dataTable.getValue(i, startCol);
-                const end = dataTable.getValue(i, endCol);
+    var rawUsers = {{ users|tojson|safe }};
+    var timelineInstance = null;
 
-                if (!minDate || start < minDate) minDate = start;
-                if (!maxDate || end > maxDate) maxDate = end;
-            }
+    // ── Collect unique departments and projects for filter dropdowns ──
+    var departments = {};
+    var projects = {};
+    rawUsers.forEach(function(u) {
+        departments[u.department] = true;
+        u.tasks.forEach(function(t) {
+            projects[t.name] = t.color;
+        });
+    });
 
-            return { minDate, maxDate };
-        }
+    // Populate department dropdown
+    var deptSelect = document.getElementById('tlDeptFilter');
+    Object.keys(departments).sort().forEach(function(d) {
+        var opt = document.createElement('option');
+        opt.value = d; opt.textContent = d;
+        deptSelect.appendChild(opt);
+    });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const users = JSON.parse('{{ users|tojson|safe }}');
-            
-            // Prepare data for Google Timeline
-            const dataTableRows = [];
-            users.forEach(user => {
-                user.tasks.forEach(task => {
-                    // Create employee name with department in brackets
-                    const employeeName = `${user.name} (${user.department})`;
-                    
-                    dataTableRows.push([
-                        employeeName,          // Resource with department
-                        task.name,             // Task name
-                        task.color,            // Bar color
-                        new Date(task.start), 
-                        new Date(task.end),
-                    ]);
-                });
-            });
+    // Populate project dropdown
+    var projSelect = document.getElementById('tlProjectFilter');
+    Object.keys(projects).sort().forEach(function(p) {
+        var opt = document.createElement('option');
+        opt.value = p; opt.textContent = p;
+        projSelect.appendChild(opt);
+    });
 
-            // Load Google Charts with controls package
-            google.charts.load('current', {'packages':['timeline', 'controls']});
-            google.charts.setOnLoadCallback(drawDashboard);
+    // ── Build chart data from filtered users ──
+    function buildChartData() {
+        var empFilter = document.getElementById('tlEmployeeFilter').value.toLowerCase();
+        var deptFilter = document.getElementById('tlDeptFilter').value;
+        var statusFilter = document.getElementById('tlStatusFilter').value;
+        var projFilter = document.getElementById('tlProjectFilter').value;
+        var startFilter = document.getElementById('tlStartDate').value;
+        var endFilter = document.getElementById('tlEndDate').value;
 
-            function drawDashboard() {
-                const dashboard = new google.visualization.Dashboard(
-                    document.getElementById('dashboard_div')
-                );
+        // Filter users
+        var filtered = rawUsers.filter(function(u) {
+            if (deptFilter && u.department !== deptFilter) return false;
+            if (empFilter && u.name.toLowerCase().indexOf(empFilter) === -1) return false;
+            return true;
+        });
 
-                // Create the DataTable first
-                const dataTable = new google.visualization.DataTable();
+        // Build series grouped by project
+        var projectSeriesMap = {};
+        var employeeSet = {};
+        var totalAssignments = 0;
 
-                // Define columns for the timeline
-                dataTable.addColumn({ type: 'string', id: 'Employee' });
-                dataTable.addColumn({ type: 'string', id: 'Task' });
-                dataTable.addColumn({ type: 'string', role: 'style' });
-                dataTable.addColumn({ type: 'string', role: 'tooltip' });
-                dataTable.addColumn({ type: 'date', id: 'Start' });
-                dataTable.addColumn({ type: 'date', id: 'End' });
-                
-                dataTable.addRows(dataTableRows.map(row => {
-                    const start = row[3];
-                    const end = row[4];
-                    const durationDays = Math.round((end - start) / 86400000);
-                    const tooltip = `
-                        <div style="padding:10px;">
-                            <strong>${row[0]}</strong><br>
-                            Project: ${row[1]}<br>
-                            Start: ${start.toLocaleDateString()}<br>
-                            End: ${end.toLocaleDateString()}<br>
-                            Duration: ${durationDays} days
-                        </div>
-                    `;
-                    console.log('Color', row[2]);
-                    return [
-                        row[0],        // Employee
-                        row[1],        // Task
-                        `color: ${row[2]}`,  // Properly formatted color style
-                        tooltip,       // Tooltip
-                        start,         // Start date
-                        end         // End date
-                    ];
-                }));
+        filtered.forEach(function(user) {
+            var label = user.name + ' (' + user.department + ')';
 
+            user.tasks.forEach(function(task) {
+                // Status filter
+                if (statusFilter === 'active' && task.status !== 'Started') return;
+                if (statusFilter === 'inactive' && task.status === 'Started') return;
 
-                const range = getDateRangeFromData(dataTable, 4, 5);
-                console.log('Range', range);
-                console.log('MinDate:', range.minDate, 'MaxDate:', range.maxDate);
-                // Create range filter control
-                const rangeFilter = new google.visualization.ControlWrapper({
-                    controlType: 'ChartRangeFilter',
-                    containerId: 'filter_div',
-                    options: {
-                        filterColumnIndex: 5,
-                        ui: {
-                            chartType: 'LineChart',
-                            chartOptions: {
-                                chartArea: {width: '100%', left: 125},
-                                fontName: 'Open Sans',
-                                hAxis: {
-                                    baselineColor: 'none',
-                                    format: 'MMM dd',
-                                    textStyle: {fontName: 'Open Sans'},
-                                    viewWindow: {
-                                        min: range.minDate,
-                                        max: range.maxDate
-                                    }
-                                }
-                            },
-                            chartView: {
-                                columns: [4, 5]
-                            }
-                        }
-                    }
-                });
+                // Project filter
+                if (projFilter && task.name !== projFilter) return;
 
-                // Create user filter
-                const userFilter = new google.visualization.ControlWrapper({
-                    controlType: 'CategoryFilter',
-                    containerId: 'user_filter_div',
-                    options: {
-                        filterColumnIndex: 0,
-                        ui: {
-                            label: 'Employee',
-                            allowTyping: false,
-                            allowMultiple: true,
-                            allowNone: true,
-                            labelStyle: {fontName: 'Open Sans'},
-                            selectedItemStyle: {fontName: 'Open Sans'},
-                            cssClass: 'google-visualization-controls-label'
-                        },
-                        sortValues: true
-                    }
-                });
+                var taskStart = task.start;
+                var taskEnd = task.end;
 
-                // Create project filter
-                const projectFilter = new google.visualization.ControlWrapper({
-                    controlType: 'CategoryFilter',
-                    containerId: 'project_filter_div',
-                    options: {
-                        filterColumnIndex: 1,
-                        ui: {
-                            label: 'Project',
-                            allowTyping: false,
-                            allowMultiple: true,
-                            allowNone: true,
-                            labelStyle: {fontName: 'Open Sans'},
-                            selectedItemStyle: {fontName: 'Open Sans'},
-                            cssClass: 'google-visualization-controls-label'
-                        },
-                        sortValues: true
-                    }
-                });
+                // Date range filter: skip if assignment doesn't overlap with filter range
+                if (startFilter && taskEnd < startFilter) return;
+                if (endFilter && taskStart > endFilter) return;
 
-                // Create timeline chart wrapper
-                const timelineChart = new google.visualization.ChartWrapper({
-                    chartType: 'Timeline',
-                    containerId: 'timeline',
-                    options: {
-                        timeline: { 
-                            showRowLabels: true,
-                            colorByRowLabel: false,
-                            rowLabelStyle: {fontName: 'Open Sans', width: '125px'}
-                        },
-                        tooltip: { 
-                            isHtml: true,
-                            textStyle: {fontName: 'Open Sans'}
-                        },
-                        fontName: 'Open Sans',
-                        height: users.length * 40 + 80
-                    }
-                });
-
-                // Establish dependencies and draw
-                dashboard.bind([userFilter, projectFilter, rangeFilter], timelineChart);
-                dashboard.draw(dataTable);
-
-                // Update range viewWindow when filters change
-                function updateRangeFilter() {
-                    const filteredData = timelineChart.getDataTable();
-                    
-                    if (filteredData && filteredData.getNumberOfRows() > 0) {
-                        const range = getDateRangeFromData(filteredData, 4, 5);
-                        
-                        const currentOptions = rangeFilter.getOptions();
-                        currentOptions.ui.chartOptions.hAxis.viewWindow = {
-                            min: range.minDate,
-                            max: range.maxDate
-                        };
-                        
-                        rangeFilter.setOptions(currentOptions);
-                        rangeFilter.draw();
-                    }
+                if (!projectSeriesMap[task.name]) {
+                    projectSeriesMap[task.name] = {
+                        name: task.name,
+                        color: task.color,
+                        data: []
+                    };
                 }
 
-                google.visualization.events.addListener(projectFilter, 'statechange', updateRangeFilter);
-                google.visualization.events.addListener(userFilter, 'statechange', updateRangeFilter);
-            }
+                projectSeriesMap[task.name].data.push({
+                    x: label,
+                    y: [new Date(taskStart).getTime(), new Date(taskEnd).getTime()],
+                    fillColor: task.color
+                });
+
+                employeeSet[label] = true;
+                totalAssignments++;
+            });
         });
-    </script>
-</div>
-{% endblock %} 
+
+        var series = Object.keys(projectSeriesMap).map(function(k) {
+            return projectSeriesMap[k];
+        });
+
+        var employeeCount = Object.keys(employeeSet).length;
+
+        // Update summary
+        document.getElementById('tlSummary').textContent =
+            employeeCount + ' employee' + (employeeCount !== 1 ? 's' : '') +
+            ' \u00B7 ' + totalAssignments + ' assignment' + (totalAssignments !== 1 ? 's' : '') +
+            ' \u00B7 ' + series.length + ' project' + (series.length !== 1 ? 's' : '');
+
+        return { series: series, employeeCount: employeeCount };
+    }
+
+    // ── Render the timeline ──
+    function renderTimeline() {
+        var result = buildChartData();
+        var series = result.series;
+        var employeeCount = result.employeeCount;
+
+        if (timelineInstance) timelineInstance.destroy();
+
+        var el = document.getElementById('timelineChart');
+
+        if (series.length === 0 || employeeCount === 0) {
+            el.innerHTML = '<div class="flex flex-col items-center justify-center py-16 text-slate-400">' +
+                '<svg class="h-10 w-10 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>' +
+                '<p class="text-sm">No assignments match the current filters</p></div>';
+            return;
+        }
+
+        // Dynamic height: ~45px per employee row + padding for legend/axis
+        var chartHeight = Math.max(300, employeeCount * 50 + 120);
+
+        // Extract colors in series order
+        var seriesColors = series.map(function(s) { return s.color || '#0d9488'; });
+
+        timelineInstance = new ApexCharts(el, {
+            chart: {
+                type: 'rangeBar',
+                height: chartHeight,
+                fontFamily: 'Inter, system-ui, sans-serif',
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: false,
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                        reset: true
+                    }
+                },
+                zoom: { enabled: true, allowMouseWheelZoom: false },
+                animations: {
+                    enabled: true,
+                    easing: 'easeinout',
+                    speed: 400
+                }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: true,
+                    barHeight: '60%',
+                    rangeBarGroupRows: true,
+                    borderRadius: 4
+                }
+            },
+            series: series,
+            colors: seriesColors,
+            xaxis: {
+                type: 'datetime',
+                labels: {
+                    style: { colors: '#94a3b8', fontSize: '11px' },
+                    datetimeFormatter: { month: 'MMM \'yy', day: 'dd MMM' }
+                },
+                axisBorder: { color: '#e2e8f0' },
+                axisTicks: { color: '#e2e8f0' }
+            },
+            yaxis: {
+                labels: {
+                    style: { colors: '#475569', fontSize: '12px', fontWeight: 500 },
+                    maxWidth: 200
+                }
+            },
+            grid: {
+                borderColor: '#f1f5f9',
+                xaxis: { lines: { show: true } },
+                yaxis: { lines: { show: false } },
+                padding: { left: 10, right: 20 }
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'left',
+                fontSize: '12px',
+                fontWeight: 500,
+                labels: { colors: '#64748b' },
+                markers: { width: 10, height: 10, radius: 3 },
+                itemMargin: { horizontal: 12, vertical: 4 }
+            },
+            tooltip: {
+                custom: function(opts) {
+                    var seriesName = opts.w.config.series[opts.seriesIndex].name;
+                    var data = opts.w.config.series[opts.seriesIndex].data[opts.dataPointIndex];
+                    var employee = data.x;
+                    var start = new Date(data.y[0]);
+                    var end = new Date(data.y[1]);
+                    var days = Math.round((end - start) / 86400000);
+                    var color = data.fillColor || opts.w.config.colors[opts.seriesIndex];
+
+                    var startStr = start.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    var endStr = end.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                    return '<div style="padding:12px 16px; font-size:13px; line-height:1.6; font-family:Inter,system-ui,sans-serif;">' +
+                        '<div style="font-weight:600; color:#1e293b; margin-bottom:6px;">' + employee + '</div>' +
+                        '<div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">' +
+                            '<span style="width:8px;height:8px;border-radius:2px;background:' + color + ';display:inline-block;"></span>' +
+                            '<span style="color:#475569;">' + seriesName + '</span>' +
+                        '</div>' +
+                        '<div style="color:#94a3b8; font-size:12px;">' +
+                            startStr + ' &rarr; ' + endStr +
+                            '<span style="margin-left:8px; color:#64748b; font-weight:500;">' + days + ' days</span>' +
+                        '</div>' +
+                    '</div>';
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function(val, opts) {
+                    return opts.w.config.series[opts.seriesIndex].name;
+                },
+                style: {
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter, system-ui, sans-serif',
+                    colors: ['#fff']
+                },
+                dropShadow: { enabled: false }
+            },
+            stroke: { width: 0 }
+        });
+        timelineInstance.render();
+    }
+
+    // ── Filter event listeners ──
+    var debounceTimer;
+    document.getElementById('tlEmployeeFilter').addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(renderTimeline, 300);
+    });
+    document.getElementById('tlDeptFilter').addEventListener('change', renderTimeline);
+    document.getElementById('tlStatusFilter').addEventListener('change', renderTimeline);
+    document.getElementById('tlProjectFilter').addEventListener('change', renderTimeline);
+    document.getElementById('tlStartDate').addEventListener('change', renderTimeline);
+    document.getElementById('tlEndDate').addEventListener('change', renderTimeline);
+
+    function resetTimelineFilters() {
+        document.getElementById('tlEmployeeFilter').value = '';
+        document.getElementById('tlDeptFilter').value = '';
+        document.getElementById('tlStatusFilter').value = 'active';
+        document.getElementById('tlProjectFilter').value = '';
+        document.getElementById('tlStartDate').value = '';
+        document.getElementById('tlEndDate').value = '';
+        renderTimeline();
+    }
+    window.resetTimelineFilters = resetTimelineFilters;
+
+    // Initial render
+    if (rawUsers.length > 0) {
+        renderTimeline();
+    }
+});
+</script>
+{% endblock %}

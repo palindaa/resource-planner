@@ -1,130 +1,247 @@
 {% extends "base.html" %}
+{% from "partials/pagination.html" import render as pagination %}
 
 {% block content %}
-<div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+<div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
     <div class="mb-8 border-b pb-4">
-        <h1 class="text-3xl font-bold text-gray-800">Project Management</h1>
+        <h1 class="text-3xl font-bold text-slate-800">Project Management</h1>
+        <p class="mt-2 text-sm text-slate-600">Create and manage projects across your organisation</p>
     </div>
-    
-    <form method="POST" class="mb-12 bg-gray-50 rounded-xl p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Project Name</label>
-                <input type="text" name="name" required
-                       class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all">
-            </div>
-            
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea name="description" rows="3"
-                          class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"></textarea>
-            </div>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Project Color</label>
-                <input type="color" name="color" value="#3b82f6" required
-                       class="w-full h-11 rounded-lg cursor-pointer">
-                <p class="mt-1 text-xs text-gray-500">Select a color for the Gantt chart</p>
-            </div>
-        </div>
-        
-        <button type="submit" 
-                class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-            Add Project
-        </button>
-    </form>
+    <!-- Toggle Button -->
+    <button type="button" id="toggleFormBtn" onclick="toggleProjectForm()"
+            class="mb-4 inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-primary bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors">
+        <svg id="toggleFormIcon" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add New Project
+    </button>
 
-    <div class="flow-root">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Project List</h2>
-        <ul class="divide-y divide-gray-200">
-            {% for project in projects %}
-            <li class="py-4 px-6 hover:bg-gray-50 transition-colors rounded-lg">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div class="min-w-0 flex-1">
-                        <h3 class="text-lg font-medium text-gray-900 truncate">{{ project.name }}</h3>
-                        <p class="mt-1 text-sm text-gray-500">{{ project.description }}</p>
-                    </div>
-                    <div class="mt-4 md:mt-0 md:ml-4 flex items-center space-x-4">
-                        <span class="px-3 py-1 text-sm font-medium rounded-full 
-                                   {% if project.status == 'Queued' %}bg-blue-100 text-blue-800
-                                   {% elif project.status == 'Started' %}bg-green-100 text-green-800
-                                   {% else %}bg-gray-100 text-gray-600{% endif %}">
-                            {{ project.status|title }}
-                        </span>
-                        {% if project.status == 'Queued' %}
-                        <a href="{{ url_for('start_project', project_id=project.id) }}" 
-                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
-                            Start Project
-                        </a>
-                        {% elif project.status == 'Started' %}
-                        <a href="{{ url_for('close_project', project_id=project.id) }}" 
-                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors">
-                            Close Project
-                        </a>
-                        {% else %}
-                        <a href="{{ url_for('reactivate_project', project_id=project.id) }}"
-                           class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
-                            Reactivate
-                        </a>
-                        {% endif %}
-                        <a href="{{ url_for('edit_project', project_id=project.id) }}" 
-                           class="p-2 text-indigo-600 hover:text-indigo-900 rounded-md hover:bg-gray-100 bg-blue-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z" />
-                            </svg>
-                        </a>
-                        <a href="{{ url_for('delete_project', project_id=project.id) }}" 
-                           class="delete-project-link p-2 text-red-600 hover:text-red-900 rounded-md hover:bg-gray-100 bg-red-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                            </svg>
-                        </a>
+    <!-- Collapsible Form -->
+    <form method="POST" id="projectForm" class="mb-10 bg-slate-50 rounded-xl border border-slate-200 overflow-hidden hidden">
+        <div class="p-6 space-y-5">
+            <!-- Row 1: Name + Color -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Project Name</label>
+                    <input type="text" name="name" required
+                           class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder-slate-400 text-sm"
+                           placeholder="e.g. Website Redesign Q3">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1.5">Timeline Color</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color" name="color" id="projectColorPicker" value="#3b82f6" required
+                               class="w-11 h-11 rounded-lg cursor-pointer border border-slate-300 p-0.5 flex-shrink-0">
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="setColor('#3b82f6')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#3b82f6" title="Blue"></button>
+                            <button type="button" onclick="setColor('#0d9488')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#0d9488" title="Teal"></button>
+                            <button type="button" onclick="setColor('#8b5cf6')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#8b5cf6" title="Purple"></button>
+                            <button type="button" onclick="setColor('#f59e0b')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#f59e0b" title="Amber"></button>
+                            <button type="button" onclick="setColor('#ef4444')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#ef4444" title="Red"></button>
+                            <button type="button" onclick="setColor('#ec4899')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#ec4899" title="Pink"></button>
+                            <button type="button" onclick="setColor('#22c55e')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#22c55e" title="Green"></button>
+                            <button type="button" onclick="setColor('#64748b')" class="w-7 h-7 rounded-md border-2 border-transparent hover:border-slate-400 transition-colors" style="background:#64748b" title="Slate"></button>
+                        </div>
                     </div>
                 </div>
-            </li>
-            {% endfor %}
-        </ul>
+            </div>
+
+            <!-- Row 2: Description (full width) -->
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
+                <textarea name="description" rows="2"
+                          class="w-full px-4 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder-slate-400 text-sm resize-none"
+                          placeholder="Brief description of the project scope and goals"></textarea>
+            </div>
+        </div>
+
+        <!-- Form Footer -->
+        <div class="px-6 py-4 bg-slate-100/60 border-t border-slate-200 flex items-center gap-3">
+            <button type="submit"
+                    class="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Create Project
+            </button>
+            <button type="button" onclick="toggleProjectForm()"
+                    class="px-5 py-2.5 text-sm font-medium rounded-lg text-slate-600 bg-white border border-slate-300 hover:bg-slate-50 transition-colors">
+                Cancel
+            </button>
+        </div>
+    </form>
+
+    <script>
+        function toggleProjectForm() {
+            var form = document.getElementById('projectForm');
+            var btn = document.getElementById('toggleFormBtn');
+            var icon = document.getElementById('toggleFormIcon');
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                btn.classList.add('hidden');
+            } else {
+                form.classList.add('hidden');
+                btn.classList.remove('hidden');
+            }
+        }
+        function setColor(hex) {
+            document.getElementById('projectColorPicker').value = hex;
+        }
+    </script>
+
+    <!-- Search & Filter -->
+    <div class="mb-5 flex flex-wrap items-end gap-3">
+        <form method="GET" class="flex flex-wrap items-end gap-3 flex-1">
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Search</label>
+                <input type="text" name="search" value="{{ search }}" placeholder="Search by name..."
+                       class="w-52 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder-slate-400">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Status</label>
+                <select name="status_filter"
+                        class="w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <option value="">All Statuses</option>
+                    <option value="Queued" {% if status_filter == 'Queued' %}selected{% endif %}>Queued</option>
+                    <option value="Started" {% if status_filter == 'Started' %}selected{% endif %}>Active</option>
+                    <option value="Closed" {% if status_filter == 'Closed' %}selected{% endif %}>Closed</option>
+                </select>
+            </div>
+            <button type="submit"
+                    class="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary-700 transition-colors">
+                Filter
+            </button>
+            {% if search or status_filter %}
+            <a href="{{ url_for('projects') }}"
+               class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition-colors">
+                Clear
+            </a>
+            {% endif %}
+        </form>
+        <div class="text-xs text-slate-400">{{ total_items }} project{{ 's' if total_items != 1 }}</div>
     </div>
+
+    <!-- Project List -->
+    <h2 class="text-xl font-semibold text-slate-800 mb-4">Project List</h2>
+    {% if projects %}
+    <div class="overflow-hidden rounded-lg ring-1 ring-black ring-opacity-5">
+        <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Project</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Description</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200">
+                {% for project in projects %}
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-3 w-3 rounded-full" style="background-color: {{ project.color }}"></div>
+                            <div class="ml-3 font-medium text-slate-900">{{ project.name }}</div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-500 max-w-xs truncate">{{ project.description }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full
+                                     {% if project.status == 'Queued' %}bg-blue-50 text-blue-700
+                                     {% elif project.status == 'Started' %}bg-teal-50 text-teal-700
+                                     {% else %}bg-slate-100 text-slate-600{% endif %}">
+                            {{ project.status }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <div class="flex items-center justify-end space-x-2">
+                            <!-- Status Action -->
+                            {% if project.status == 'Queued' %}
+                            <a href="{{ url_for('start_project', project_id=project.id) }}"
+                               class="inline-flex items-center p-2 bg-primary-50 text-primary rounded-lg hover:bg-primary-100 transition-colors"
+                               title="Start Project">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </a>
+                            {% elif project.status == 'Started' %}
+                            <a href="{{ url_for('close_project', project_id=project.id) }}"
+                               class="inline-flex items-center p-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors"
+                               title="Close Project">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('reactivate_project', project_id=project.id) }}"
+                               class="inline-flex items-center p-2 bg-primary-50 text-primary rounded-lg hover:bg-primary-100 transition-colors"
+                               title="Reactivate Project">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                </svg>
+                            </a>
+                            {% endif %}
+
+                            <!-- Edit -->
+                            <a href="{{ url_for('edit_project', project_id=project.id) }}"
+                               class="inline-flex items-center p-2 bg-teal-100 text-teal-800 rounded-lg hover:bg-teal-200 transition-colors"
+                               title="Edit">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                </svg>
+                            </a>
+
+                            <!-- Delete -->
+                            <a href="{{ url_for('delete_project', project_id=project.id) }}"
+                               class="delete-project-link inline-flex items-center p-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 transition-colors"
+                               title="Delete">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-slate-500 text-center py-6">No projects found.</p>
+    {% endif %}
+
+    {{ pagination(page, total_pages, 'projects', {'search': search, 'status_filter': status_filter}) }}
 </div>
 
 <!-- Delete Confirmation Modal -->
-<div id="deleteProjectModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-    <div class="relative p-5 border w-96 shadow-lg rounded-md bg-white">
-        <div class="mt-3 text-center">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+<div id="deleteProjectModal" class="hidden fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+        <div class="text-center">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
                 <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
             </div>
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mt-2" id="modalTitle">Delete Project</h3>
-            <div class="mt-2 px-7 py-3">
-                <p class="text-sm text-gray-500">
-                    Are you sure you want to delete this project? This action cannot be undone.
-                </p>
-            </div>
-            <div class="items-center px-4 py-3">
-                <button id="confirmDelete" class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-24 shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
-                    Delete
-                </button>
-                <button id="cancelDelete" class="ml-2 px-4 py-2 bg-gray-100 text-gray-700 text-base font-medium rounded-md w-24 shadow-sm hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                    Cancel
-                </button>
+            <h3 class="text-lg font-semibold text-slate-800 mb-2">Delete Project</h3>
+            <p class="text-sm text-slate-500 mb-6">Are you sure you want to delete this project? This action cannot be undone.</p>
+            <div class="flex justify-center space-x-3">
+                <button id="cancelDelete" class="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">Cancel</button>
+                <button id="confirmDelete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">Delete</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- JavaScript for Modal Functionality -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        let deleteModal = document.getElementById('deleteProjectModal');
-        let deleteLinks = document.querySelectorAll('.delete-project-link');
-        let confirmDeleteBtn = document.getElementById('confirmDelete');
-        let cancelDeleteBtn = document.getElementById('cancelDelete');
-        let currentDeleteUrl = '';
+        var deleteModal = document.getElementById('deleteProjectModal');
+        var deleteLinks = document.querySelectorAll('.delete-project-link');
+        var confirmDeleteBtn = document.getElementById('confirmDelete');
+        var cancelDeleteBtn = document.getElementById('cancelDelete');
+        var currentDeleteUrl = '';
 
-        // Show modal when delete button is clicked
-        deleteLinks.forEach(link => {
+        deleteLinks.forEach(function(link) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 currentDeleteUrl = this.getAttribute('href');
@@ -132,17 +249,14 @@
             });
         });
 
-        // Hide modal when cancel button is clicked
         cancelDeleteBtn.addEventListener('click', function() {
             deleteModal.classList.add('hidden');
         });
 
-        // Confirm delete and redirect
         confirmDeleteBtn.addEventListener('click', function() {
             window.location.href = currentDeleteUrl;
         });
 
-        // Close modal if user clicks outside of it
         window.addEventListener('click', function(event) {
             if (event.target == deleteModal) {
                 deleteModal.classList.add('hidden');

@@ -1,182 +1,279 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-gray-50">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="{{ url_for('static', filename='favico.png') }}" type="image/png">
-    <title>Team Planner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Resource Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    },
                     colors: {
-                        primary: '#10B981',
-                        secondary: '#3B82F6',
-                        danger: '#EF4444',
-                        warning: '#F59E0B'
+                        primary: {
+                            DEFAULT: '#0d9488',
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a'
+                        }
                     }
                 }
             }
         }
     </script>
-    <style>
-        .alert-success {
-            background-color: #D1FAE5;
-            color: #065F46;
-            border-color: #34D399;
-        }
-        
-        .alert-error {
-            background-color: #FEE2E2;
-            color: #B91C1C;
-            border-color: #F87171;
-        }
-    </style>
-    <!-- <link rel="stylesheet" href="https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.css"> -->
-    <!-- <script src="https://unpkg.com/frappe-gantt@0.6.1/dist/frappe-gantt.js"></script> -->
 </head>
-<body class="h-full font-['Open_Sans']">
-    <!-- <header class="bg-gradient-to-r from-green-600 to-emerald-600 text-white py-4 text-center">
-        <h1 class="text-3xl font-bold">Team Planner</h1>
-    </header> -->
-    
-    <nav class="bg-white shadow-sm">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <a href="{{ url_for('dashboard') }}" class="text-xl font-semibold text-gray-800">
-                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="hr-9" style="height: 9rem;">
-                </a>
-                <!-- Desktop Menu (hidden on mobile, visible on medium and above) -->
-                <div class="hidden md:flex space-x-8">
-                    <a href="{{ url_for('dashboard') }}" 
-                       class="{{ 'text-green-700' if request.path == '/' else 'text-gray-600' }} hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Dashboard
-                    </a>
-                    <a href="{{ url_for('resource_allocation') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Resource Timeline
-                    </a>
-                    <a href="{{ url_for('users') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Resources
-                    </a>
-                    <a href="{{ url_for('projects') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Projects
-                    </a>
-                    <a href="{{ url_for('assign') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Assignments
-                    </a>
-                    <a href="{{ url_for('admin_users') }}" 
-                       class="text-gray-600 hover:text-green-700 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                        Admin Users
-                    </a>
-                    <form action="{{ url_for('logout') }}" method="post" class="inline ml-4">
-                        <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-2 rounded-md text-sm font-medium transition-colors border border-red-200">
-                            Logout
+<body class="h-full font-sans">
+    <div class="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50/30 to-teal-50/40">
+
+        <!-- Accent brush line -->
+        <div class="accent-brush-line"></div>
+
+        <!-- Navigation Bar -->
+        <header class="bg-white border-b border-slate-200 shadow-sm relative z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Left: Mobile menu + Logo -->
+                    <div class="flex items-center gap-4">
+                        <button id="mobile-menu-open"
+                                class="md:hidden p-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                                aria-label="Open menu">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
                         </button>
-                    </form>
+                        <a href="{{ url_for('dashboard') }}" class="flex items-center">
+                            <img src="{{ url_for('static', filename='logo.png') }}" alt="Resource Planner" class="h-32 w-auto object-contain">
+                        </a>
+                    </div>
+
+                    <!-- Center: Desktop Nav -->
+                    <nav class="hidden md:flex items-center gap-1">
+                        <a href="{{ url_for('dashboard') }}"
+                           class="text-sm font-medium transition-colors px-3 py-2 rounded-md relative flex items-center gap-1.5
+                                  {{ 'text-primary' if request.path == '/' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                            </svg>
+                            Dashboard
+                            {% if request.path == '/' %}<span class="nav-active-indicator"></span>{% endif %}
+                        </a>
+                        <a href="{{ url_for('resource_allocation') }}"
+                           class="text-sm font-medium transition-colors px-3 py-2 rounded-md relative flex items-center gap-1.5
+                                  {{ 'text-primary' if request.path == '/resource-allocation' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Timeline
+                            {% if request.path == '/resource-allocation' %}<span class="nav-active-indicator"></span>{% endif %}
+                        </a>
+                        <a href="{{ url_for('users') }}"
+                           class="text-sm font-medium transition-colors px-3 py-2 rounded-md relative flex items-center gap-1.5
+                                  {{ 'text-primary' if request.path == '/users' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                            </svg>
+                            Resources
+                            {% if request.path == '/users' %}<span class="nav-active-indicator"></span>{% endif %}
+                        </a>
+                        <a href="{{ url_for('projects') }}"
+                           class="text-sm font-medium transition-colors px-3 py-2 rounded-md relative flex items-center gap-1.5
+                                  {{ 'text-primary' if request.path == '/projects' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                            </svg>
+                            Projects
+                            {% if request.path == '/projects' %}<span class="nav-active-indicator"></span>{% endif %}
+                        </a>
+                        <a href="{{ url_for('assign') }}"
+                           class="text-sm font-medium transition-colors px-3 py-2 rounded-md relative flex items-center gap-1.5
+                                  {{ 'text-primary' if '/assign' in request.path else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Assignments
+                            {% if '/assign' in request.path %}<span class="nav-active-indicator"></span>{% endif %}
+                        </a>
+                        <a href="{{ url_for('admin_users') }}"
+                           class="text-sm font-medium transition-colors px-3 py-2 rounded-md relative flex items-center gap-1.5
+                                  {{ 'text-primary' if request.path == '/admin-users' else 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Admin
+                            {% if request.path == '/admin-users' %}<span class="nav-active-indicator"></span>{% endif %}
+                        </a>
+                    </nav>
+
+                    <!-- Right: Logout -->
+                    <div class="flex items-center">
+                        <form action="{{ url_for('logout') }}" method="post" class="inline">
+                            <button type="submit"
+                                    class="p-2 rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                    title="Sign out">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                <!-- Mobile menu button -->
-                <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500">
-                        <span class="sr-only">Open main menu</span>
-                        <!-- Hamburger icon -->
-                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </div>
+        </header>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden">
+            <div class="mobile-menu-overlay" id="mobile-menu-overlay"></div>
+            <div class="mobile-menu-panel">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-4 border-b border-slate-200">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Resource Planner" class="h-8 w-auto object-contain">
+                    <button id="mobile-menu-close"
+                            class="p-2 rounded-md text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                            aria-label="Close menu">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
+
+                <!-- Menu items -->
+                <nav class="flex-1 p-4 space-y-1">
+                    <a href="{{ url_for('dashboard') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                              {{ 'bg-primary-50 text-primary' if request.path == '/' else 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+                        </svg>
+                        Dashboard
+                    </a>
+                    <a href="{{ url_for('resource_allocation') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                              {{ 'bg-primary-50 text-primary' if request.path == '/resource-allocation' else 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                        Timeline
+                    </a>
+                    <a href="{{ url_for('users') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                              {{ 'bg-primary-50 text-primary' if request.path == '/users' else 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                        </svg>
+                        Resources
+                    </a>
+                    <a href="{{ url_for('projects') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                              {{ 'bg-primary-50 text-primary' if request.path == '/projects' else 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                        </svg>
+                        Projects
+                    </a>
+                    <a href="{{ url_for('assign') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                              {{ 'bg-primary-50 text-primary' if '/assign' in request.path else 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        Assignments
+                    </a>
+                    <a href="{{ url_for('admin_users') }}"
+                       class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors
+                              {{ 'bg-primary-50 text-primary' if request.path == '/admin-users' else 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Admin
+                    </a>
+                </nav>
+
+                <!-- Footer: Logout -->
+                <div class="p-4 border-t border-slate-200">
+                    <form action="{{ url_for('logout') }}" method="post">
+                        <button type="submit" class="btn-primary w-full">Sign out</button>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- Mobile menu, show/hide based on menu state. -->
-        <div id="mobile-menu" class="hidden md:hidden">
-            <div class="pt-2 pb-3 space-y-1">
-                <a href="{{ url_for('dashboard') }}" 
-                   class="{{ 'text-green-700' if request.path == '/' else 'text-gray-600' }} hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Dashboard
-                </a>
-                <a href="{{ url_for('resource_allocation') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Resource Timeline
-                </a>
-                <a href="{{ url_for('users') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Resources
-                </a>
-                <a href="{{ url_for('projects') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Projects
-                </a>
-                <a href="{{ url_for('assign') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Assignments
-                </a>
-                <a href="{{ url_for('admin_users') }}" 
-                   class="text-gray-600 hover:text-green-700 block px-3 py-2 rounded-md text-base font-medium transition-colors">
-                    Admin Users
-                </a>
-                <form action="{{ url_for('logout') }}" method="post" class="block">
-                    <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors border border-red-200">
-                        Logout
-                    </button>
-                </form>
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div id="flash-messages" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 transition-opacity duration-500">
+              {% for category, message in messages %}
+                <div class="alert-{{ category }} p-4 rounded-lg mb-3 flex items-center gap-3">
+                    {% if category == 'success' %}
+                    <svg class="h-5 w-5 text-teal-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {% else %}
+                    <svg class="h-5 w-5 text-red-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {% endif %}
+                    <span class="text-sm">{{ message }}</span>
+                </div>
+              {% endfor %}
             </div>
-        </div>
-    </nav>
+          {% endif %}
+        {% endwith %}
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        <div id="flash-messages"
-             class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4
-                    transition-opacity duration-500">
-          {% for category, message in messages %}
-            <div class="alert-{{ category }} p-4 rounded mb-4">
-              {{ message }}
+        <!-- Main Content -->
+        <main class="flex-1 overflow-x-hidden">
+            <div class="{% if request.path == '/' or request.path == '/resource-allocation' %}max-w-full px-4 sm:px-6 lg:px-10{% else %}max-w-7xl mx-auto px-4 sm:px-6 lg:px-8{% endif %} py-8 w-full">
+                {% block content %}{% endblock %}
             </div>
-          {% endfor %}
-        </div>
-      {% endif %}
-    {% endwith %}
+        </main>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {% block content %}{% endblock %}
-    </main>
+        <!-- Footer -->
+        <footer class="mt-auto border-t border-slate-200 bg-white/60 backdrop-blur-sm py-4">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-slate-400 text-xs">
+                <p>&copy; 2025 Resource Planner</p>
+            </div>
+        </footer>
+    </div>
 
-    <footer class="mt-auto border-t bg-white py-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2025 Resource Planner</p>
-        </div>
-    </footer>
-
-    <!-- auto-dismiss flash after 30s -->
+    <!-- Auto-dismiss flash -->
     <script>
       setTimeout(function(){
         var flash = document.getElementById('flash-messages');
         if (!flash) return;
-        // fade out:
         flash.style.opacity = '0';
-        // remove from DOM after fade completes:
         setTimeout(function(){ flash.remove(); }, 500);
       }, 3000);
     </script>
 
+    <!-- Mobile menu toggle -->
     <script>
-        // Toggle mobile menu
-        document.getElementById('mobile-menu-button').addEventListener('click', function() {
-            var mobileMenu = document.getElementById('mobile-menu');
-            if (mobileMenu.classList.contains('hidden')) {
-                mobileMenu.classList.remove('hidden');
-            } else {
-                mobileMenu.classList.add('hidden');
-            }
-        });
+        var mobileMenu = document.getElementById('mobile-menu');
+        var openBtn = document.getElementById('mobile-menu-open');
+        var closeBtn = document.getElementById('mobile-menu-close');
+        var overlay = document.getElementById('mobile-menu-overlay');
+
+        function openMobileMenu() { mobileMenu.classList.remove('hidden'); }
+        function closeMobileMenu() { mobileMenu.classList.add('hidden'); }
+
+        openBtn.addEventListener('click', openMobileMenu);
+        closeBtn.addEventListener('click', closeMobileMenu);
+        overlay.addEventListener('click', closeMobileMenu);
     </script>
 </body>
 </html>

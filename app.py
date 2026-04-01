@@ -113,8 +113,15 @@ def admin_users(current_user):
             except sqlite3.IntegrityError:
                 return render_template('admin_users.html', error='Username already exists')
     
-    users = db.execute('SELECT * FROM AdminUser').fetchall()
-    return render_template('admin_users.html', users=users)
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    total_items = db.execute('SELECT COUNT(*) FROM AdminUser').fetchone()[0]
+    total_pages = math.ceil(total_items / per_page) if total_items > 0 else 1
+    users = db.execute('SELECT * FROM AdminUser LIMIT ? OFFSET ?',
+                       (per_page, (page - 1) * per_page)).fetchall()
+    return render_template('admin_users.html', users=users,
+                         page=page, total_pages=total_pages, total_items=total_items)
 
 @app.route('/users', methods=['GET', 'POST'])
 @token_required
@@ -158,14 +165,26 @@ def users(current_user):
     order = 'DESC' if sort_order == 'desc' else 'ASC'
     query += f' ORDER BY {sort_col} {order}'
 
-    users = db.execute(query, params).fetchall()
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+
+    # Count total before pagination
+    count_query = query.replace('SELECT *', 'SELECT COUNT(*)', 1)
+    total_items = db.execute(count_query, params).fetchone()[0]
+    total_pages = math.ceil(total_items / per_page) if total_items > 0 else 1
+
+    query += ' LIMIT ? OFFSET ?'
+    paginated_params = params + [per_page, (page - 1) * per_page]
+    users = db.execute(query, paginated_params).fetchall()
 
     # Get distinct departments for filter dropdown
     departments = db.execute('SELECT DISTINCT department FROM users').fetchall()
 
     return render_template('users.html', users=users, departments=departments,
                          current_dept=dept_filter, name_filter=name_filter,
-                         status_filter=status_filter, sort_by=sort_by, sort_order=sort_order)
+                         status_filter=status_filter, sort_by=sort_by, sort_order=sort_order,
+                         page=page, total_pages=total_pages, total_items=total_items)
 
 @app.route('/delete_user/<int:user_id>')
 @token_required
@@ -202,8 +221,35 @@ def projects(current_user):
         ''', (name, description, color))
         db.commit()
     
-    projects = db.execute('SELECT * FROM projects').fetchall()
-    return render_template('projects.html', projects=projects)
+    # Filters
+    search = request.args.get('search', '')
+    status_filter = request.args.get('status_filter', '')
+
+    query = 'SELECT * FROM projects WHERE 1=1'
+    count_query = 'SELECT COUNT(*) FROM projects WHERE 1=1'
+    params = []
+
+    if search:
+        query += ' AND name LIKE ?'
+        count_query += ' AND name LIKE ?'
+        params.append(f'%{search}%')
+    if status_filter:
+        query += ' AND status = ?'
+        count_query += ' AND status = ?'
+        params.append(status_filter)
+
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+    total_items = db.execute(count_query, params).fetchone()[0]
+    total_pages = math.ceil(total_items / per_page) if total_items > 0 else 1
+
+    query += ' LIMIT ? OFFSET ?'
+    projects = db.execute(query, params + [per_page, (page - 1) * per_page]).fetchall()
+
+    return render_template('projects.html', projects=projects,
+                         page=page, total_pages=total_pages, total_items=total_items,
+                         search=search, status_filter=status_filter)
 
 @app.route('/start_project/<int:project_id>')
 @token_required
@@ -284,7 +330,7 @@ def assign(current_user):
     if conditions:
         count_query += ' WHERE ' + ' AND '.join(conditions)
     total_assignments = db.execute(count_query, params).fetchone()[0]
-    total_pages = math.ceil(total_assignments / per_page)
+    total_pages = math.ceil(total_assignments / per_page) if total_assignments > 0 else 1
 
     # Add ordering and pagination to the main query
     query += ' ORDER BY user_projects.start_date DESC'
@@ -357,7 +403,8 @@ def resource_allocation(current_user):
     assignments = db.execute('''
         SELECT users.id as user_id, users.username, users.department,
                projects.id as project_id, projects.name, projects.color,
-               user_projects.start_date, user_projects.end_date 
+               projects.status as project_status,
+               user_projects.start_date, user_projects.end_date
         FROM user_projects
         JOIN users ON user_projects.user_id = users.id
         JOIN projects ON user_projects.project_id = projects.id
@@ -382,7 +429,8 @@ def resource_allocation(current_user):
             'end': assignment['end_date'],
             'progress': 100,
             'dependencies': '',
-            'color': assignment['color']
+            'color': assignment['color'],
+            'status': assignment['project_status']
         })
 
     # Convert dict_values to list for JSON serialization

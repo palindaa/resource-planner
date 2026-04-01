@@ -1,73 +1,95 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 lg:col-span-2">
-    <!-- Total Users Card -->
-    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Team Members</h3>
-        <p class="text-3xl font-bold text-blue-600">{{ total_users }}</p>
+<!-- KPI Cards -->
+<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 lg:col-span-2">
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Team Members</p>
+            <p class="text-2xl font-bold text-slate-800">{{ total_users }}</p>
+        </div>
     </div>
-
-    <!-- Active Projects Card -->
-    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Active Projects</h3>
-        <p class="text-3xl font-bold text-green-600">{{ active_projects }}</p>
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-lg bg-teal-50 flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Active</p>
+            <p class="text-2xl font-bold text-slate-800">{{ active_projects }}</p>
+        </div>
     </div>
-
-    <!-- Queued Projects Card -->
-    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Queued Projects</h3>
-        <p class="text-3xl font-bold text-yellow-600">{{ queued_projects }}</p>
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Queued</p>
+            <p class="text-2xl font-bold text-slate-800">{{ queued_projects }}</p>
+        </div>
     </div>
-
-    <!-- Closed Projects Card -->
-    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Closed Projects</h3>
-        <p class="text-3xl font-bold text-red-600">{{ closed_projects }}</p>
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Closed</p>
+            <p class="text-2xl font-bold text-slate-800">{{ closed_projects }}</p>
+        </div>
     </div>
-
-    <!-- Total Projects Card -->
-    <div class="bg-white p-3 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-2">Total Projects</h3>
-        <p class="text-3xl font-bold text-purple-600">{{ total_projects }}</p>
+    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4">
+        <div class="h-11 w-11 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
+            <svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+            </svg>
+        </div>
+        <div>
+            <p class="text-xs font-medium text-slate-500 uppercase tracking-wide">Total</p>
+            <p class="text-2xl font-bold text-slate-800">{{ total_projects }}</p>
+        </div>
     </div>
 </div>
-<div class="grid grid-cols-1 gap-6 mt-6">
-    <!-- Resource Utilisation Table -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-            <h3 class="text-lg font-semibold text-gray-700">
-                Resource Utilisation (Next 30 Days)
-                <span class="text-sm font-normal text-gray-500">
-                    (Total weekdays: {{ total_weekdays }})
-                </span>
-            </h3>
 
-            <!-- Filters -->
+<!-- Resource Utilisation Table -->
+<div class="mt-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
+            <h3 class="text-lg font-semibold text-slate-800">
+                Resource Utilisation
+                <span class="text-sm font-normal text-slate-400 ml-1">Next 30 days &middot; {{ total_weekdays }} weekdays</span>
+            </h3>
             <form method="get" class="flex flex-wrap items-center gap-3">
-                <!-- Name Search -->
                 <div class="flex items-center">
                     <input type="text" name="name_filter" placeholder="Search by name..."
                            value="{{ name_filter }}"
-                           class="border rounded-md px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-1 focus:ring-blue-500">
-                    <button type="submit" class="ml-1.5 px-3 py-1.5 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600">
+                           class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm w-48 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <button type="submit" class="ml-1.5 px-3 py-1.5 bg-primary text-white rounded-lg text-sm hover:bg-primary-700 transition-colors">
                         Search
                     </button>
                     {% if name_filter %}
                     <a href="?sort={{ sort_by }}&order={{ sort_order }}&dept_filter={{ dept_filter }}"
-                       class="ml-1.5 px-3 py-1.5 bg-gray-200 text-gray-600 rounded-md text-sm hover:bg-gray-300">
+                       class="ml-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition-colors">
                         Clear
                     </a>
                     {% endif %}
                 </div>
-
-                <!-- Department Filter -->
                 <div class="flex items-center">
-                    <label for="dept_filter" class="mr-2 text-sm text-gray-600">Department:</label>
+                    <label for="dept_filter" class="mr-2 text-sm text-slate-500">Department:</label>
                     <select name="dept_filter" id="dept_filter"
-                            class="border rounded-md px-2 py-1.5 text-sm"
+                            class="border border-slate-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                             onchange="this.form.submit()">
-                        <option value="">All Departments</option>
+                        <option value="">All</option>
                         {% for dept in department_data %}
                             <option value="{{ dept.department }}"
                                 {% if dept_filter == dept.department %}selected{% endif %}>
@@ -76,283 +98,296 @@
                         {% endfor %}
                     </select>
                 </div>
-
-                <!-- Preserve sort params -->
                 <input type="hidden" name="sort" value="{{ sort_by }}">
                 <input type="hidden" name="order" value="{{ sort_order }}">
             </form>
         </div>
 
-        <!-- Sorting and pagination info -->
-        <div class="flex justify-between items-center mb-4">
-            <div class="text-sm text-gray-500">
-                Showing {{ utilisation_data|length }} of {{ total_items }} resources
-            </div>
-        </div>
+        <div class="text-xs text-slate-400 mb-3">Showing {{ utilisation_data|length }} of {{ total_items }} resources</div>
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="overflow-x-auto rounded-lg ring-1 ring-black ring-opacity-5">
+            <table class="min-w-full divide-y divide-slate-200">
+                <thead class="bg-slate-50">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <a href="?sort=username&order={% if sort_by == 'username' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}">
-                                User
-                                {% if sort_by == 'username' %}
-                                    {% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}
-                                {% endif %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            <a href="?sort=username&order={% if sort_by == 'username' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}" class="hover:text-slate-700">
+                                User {% if sort_by == 'username' %}{% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}{% endif %}
                             </a>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <a href="?sort=department&order={% if sort_by == 'department' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}">
-                                Department
-                                {% if sort_by == 'department' %}
-                                    {% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}
-                                {% endif %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            <a href="?sort=department&order={% if sort_by == 'department' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}" class="hover:text-slate-700">
+                                Department {% if sort_by == 'department' %}{% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}{% endif %}
                             </a>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <a href="?sort=utilisation&order={% if sort_by == 'utilisation' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}">
-                                Utilisation (%)
-                                {% if sort_by == 'utilisation' %}
-                                    {% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}
-                                {% endif %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            <a href="?sort=utilisation&order={% if sort_by == 'utilisation' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}" class="hover:text-slate-700">
+                                Utilisation {% if sort_by == 'utilisation' %}{% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}{% endif %}
                             </a>
                         </th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <a href="?sort=next_available&order={% if sort_by == 'next_available' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}">
-                                Next Available
-                                {% if sort_by == 'next_available' %}
-                                    {% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}
-                                {% endif %}
+                        <th class="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            <a href="?sort=next_available&order={% if sort_by == 'next_available' and sort_order == 'asc' %}desc{% else %}asc{% endif %}&page={{ current_page }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}" class="hover:text-slate-700">
+                                Next Available {% if sort_by == 'next_available' %}{% if sort_order == 'asc' %}&#9650;{% else %}&#9660;{% endif %}{% endif %}
                             </a>
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-slate-100">
                     {% for user in utilisation_data %}
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.username }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.department }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.utilisation }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.next_available }}</td>
+                    <tr class="hover:bg-slate-50/50 transition-colors">
+                        <td class="px-6 py-3.5 whitespace-nowrap text-sm font-medium text-slate-700">{{ user.username }}</td>
+                        <td class="px-6 py-3.5 whitespace-nowrap text-sm text-slate-500">{{ user.department }}</td>
+                        <td class="px-6 py-3.5 whitespace-nowrap text-sm">
+                            <div class="flex items-center gap-2.5">
+                                <div class="flex-1 max-w-[120px] bg-slate-100 rounded-full h-2 overflow-hidden">
+                                    <div class="h-full rounded-full {% if user.utilisation >= 80 %}bg-red-400{% elif user.utilisation >= 50 %}bg-amber-400{% else %}bg-teal-400{% endif %}"
+                                         style="width: {{ [user.utilisation, 100]|min }}%"></div>
+                                </div>
+                                <span class="text-slate-600 tabular-nums">{{ user.utilisation }}%</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-3.5 whitespace-nowrap text-sm text-slate-500">{{ user.next_available }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
 
-        <!-- Pagination controls -->
         {% if total_pages > 1 %}
         <div class="mt-4 flex items-center justify-between">
             <div>
                 {% if current_page > 1 %}
                     <a href="?sort={{ sort_by }}&order={{ sort_order }}&page={{ current_page - 1 }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}"
-                       class="px-4 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300">
-                        Previous
-                    </a>
+                       class="px-4 py-2 bg-slate-100 rounded-lg text-slate-600 text-sm hover:bg-slate-200 transition-colors">Previous</a>
                 {% endif %}
             </div>
-
-            <div class="text-sm text-gray-500">
-                Page {{ current_page }} of {{ total_pages }}
-            </div>
-
+            <div class="text-sm text-slate-400">Page {{ current_page }} of {{ total_pages }}</div>
             <div>
                 {% if current_page < total_pages %}
                     <a href="?sort={{ sort_by }}&order={{ sort_order }}&page={{ current_page + 1 }}&dept_filter={{ dept_filter }}&name_filter={{ name_filter }}"
-                       class="px-4 py-2 bg-gray-200 rounded-md text-gray-700 hover:bg-gray-300">
-                        Next
-                    </a>
+                       class="px-4 py-2 bg-slate-100 rounded-lg text-slate-600 text-sm hover:bg-slate-200 transition-colors">Next</a>
                 {% endif %}
             </div>
         </div>
         {% endif %}
     </div>
 </div>
+
+<!-- Charts Row: Department + Project Allocation -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-    <!-- Department Distribution Card -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-700 mb-4">Department Distribution</h3>
-        <div class="relative h-96">
-            <canvas id="departmentChart"></canvas>
-        </div>
+    <!-- Department Distribution -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <h3 class="text-lg font-semibold text-slate-800 mb-1">Department Distribution</h3>
+        <p class="text-xs text-slate-400 mb-4">Team members by department</p>
+        <div id="departmentChart"></div>
         {% if not department_data %}
-            <p class="text-gray-500 text-center py-4">No department data available</p>
+            <p class="text-slate-400 text-center py-8 text-sm">No department data available</p>
         {% endif %}
     </div>
 
-    <!-- Project Allocation Card -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
-            <h3 class="text-lg font-semibold text-gray-700">Project Allocation</h3>
-            <div class="flex items-center gap-2">
-                <label for="allocStatusFilter" class="text-sm text-gray-600">Status:</label>
-                <select id="allocStatusFilter" class="border rounded-md px-2 py-1.5 text-sm"
-                        onchange="updateAllocationChart()">
-                    <option value="all">All Projects</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                </select>
+    <!-- Project Allocation -->
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex flex-wrap justify-between items-start mb-1 gap-2">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-800">Project Allocation</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Resources assigned per project</p>
             </div>
+            <select id="allocStatusFilter" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    onchange="updateAllocationChart()">
+                <option value="all">All Projects</option>
+                <option value="active" selected>Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
         </div>
-        <div class="relative h-72">
-            <canvas id="projectAllocationChart"></canvas>
-        </div>
-        <!-- Custom scrollable legend -->
-        <div id="allocLegend" class="mt-3 flex flex-wrap gap-x-4 gap-y-2 max-h-24 overflow-y-auto border-t pt-3 px-1"></div>
+        <div id="projectAllocationChart" class="mt-2"></div>
         {% if not project_allocation_data %}
-            <p class="text-gray-500 text-center py-4">No project allocation data available</p>
+            <p class="text-slate-400 text-center py-8 text-sm">No project allocation data available</p>
         {% endif %}
     </div>
 </div>
 
-<div class="grid grid-cols-1 gap-6 mt-6">
-    <!-- Project Hours Card -->
-    <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <div class="flex flex-wrap justify-between items-center mb-4 gap-3">
-            <h3 class="text-lg font-semibold text-gray-700">Project Total Man Hours</h3>
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="flex items-center gap-2">
-                    <label for="hoursStatusFilter" class="text-sm text-gray-600">Status:</label>
-                    <select id="hoursStatusFilter" class="border rounded-md px-2 py-1.5 text-sm"
-                            onchange="updateHoursChart()">
-                        <option value="all">All Projects</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-                <div class="flex items-center gap-2">
-                    <label for="hoursStartDate" class="text-sm text-gray-600">From:</label>
-                    <input type="date" id="hoursStartDate" class="border rounded-md px-2 py-1.5 text-sm"
-                           onchange="updateHoursChart()">
-                </div>
-                <div class="flex items-center gap-2">
-                    <label for="hoursEndDate" class="text-sm text-gray-600">To:</label>
-                    <input type="date" id="hoursEndDate" class="border rounded-md px-2 py-1.5 text-sm"
-                           onchange="updateHoursChart()">
-                </div>
-                <button onclick="clearHoursFilters()" class="px-3 py-1.5 bg-gray-200 text-gray-600 rounded-md text-sm hover:bg-gray-300">
+<!-- Man Hours Chart -->
+<div class="mt-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex flex-wrap justify-between items-start mb-4 gap-3">
+            <div>
+                <h3 class="text-lg font-semibold text-slate-800">Project Total Man Hours</h3>
+                <p class="text-xs text-slate-400 mt-0.5">Daily man hours per project over time</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <select id="hoursStatusFilter" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        onchange="updateHoursChart()">
+                    <option value="all">All Projects</option>
+                    <option value="active" selected>Active</option>
+                    <option value="inactive">Inactive</option>
+                </select>
+                <input type="date" id="hoursStartDate" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                       onchange="updateHoursChart()">
+                <input type="date" id="hoursEndDate" class="border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                       onchange="updateHoursChart()">
+                <button onclick="clearHoursFilters()" class="px-3 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-xs hover:bg-slate-200 transition-colors">
                     Reset
                 </button>
             </div>
         </div>
-        <div class="relative h-96">
-            <canvas id="hoursChart"></canvas>
-        </div>
+        <div id="hoursChart"></div>
         {% if not hours_datasets %}
-            <p class="text-gray-500 text-center py-4">No project hours data available</p>
+            <p class="text-slate-400 text-center py-8 text-sm">No project hours data available</p>
         {% endif %}
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+<!-- ApexCharts CDN -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Department Chart (unchanged)
-    const deptCtx = document.getElementById('departmentChart').getContext('2d');
-    new Chart(deptCtx, {
-        type: 'pie',
-        data: {
-            labels: {{ department_data|map(attribute='department')|list|tojson }},
-            datasets: [{
-                data: {{ department_data|map(attribute='count')|list|tojson }},
-                backgroundColor: [
-                    '#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#EC4899',
-                    '#14B8A6', '#F43F5E', '#8B5CF6', '#0EA5E9', '#84CC16'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: {
-                        color: '#6B7280',
-                        font: {
-                            family: "'Open Sans', sans-serif",
-                            size: 14
+
+    // ── Shared palette ──
+    var palette = ['#0d9488','#3b82f6','#f59e0b','#6366f1','#ec4899','#14b8a6','#f43f5e','#8b5cf6','#0ea5e9','#84cc16'];
+
+    // ══════════════════════════════════════════
+    //  Department Distribution – Donut Chart
+    // ══════════════════════════════════════════
+    var deptLabels = {{ department_data|map(attribute='department')|list|tojson }};
+    var deptValues = {{ department_data|map(attribute='count')|list|tojson }};
+
+    if (deptLabels.length > 0) {
+        new ApexCharts(document.getElementById('departmentChart'), {
+            chart: {
+                type: 'donut',
+                height: 340,
+                fontFamily: 'Inter, system-ui, sans-serif'
+            },
+            series: deptValues,
+            labels: deptLabels,
+            colors: palette.slice(0, deptLabels.length),
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '60%',
+                        labels: {
+                            show: true,
+                            name: { fontSize: '14px', color: '#475569' },
+                            value: { fontSize: '22px', fontWeight: 700, color: '#1e293b' },
+                            total: {
+                                show: true,
+                                label: 'Total',
+                                fontSize: '13px',
+                                color: '#94a3b8',
+                                fontWeight: 500
+                            }
                         }
                     }
                 }
+            },
+            dataLabels: { enabled: false },
+            legend: {
+                position: 'bottom',
+                horizontalAlign: 'center',
+                fontSize: '13px',
+                fontWeight: 500,
+                labels: { colors: '#64748b' },
+                markers: { width: 10, height: 10, radius: 3 },
+                itemMargin: { horizontal: 12, vertical: 4 }
+            },
+            stroke: { width: 2, colors: ['#fff'] },
+            tooltip: {
+                y: { formatter: function(v) { return v + ' members'; } }
             }
-        }
-    });
+        }).render();
+    }
 
-    // ---- Project Allocation Chart (with status filter + custom legend) ----
-    const allocRawData = {{ project_allocation_list|tojson|safe }};
-    const defaultColors = ['#3B82F6', '#10B981', '#F59E0B', '#6366F1', '#EC4899',
-                           '#14B8A6', '#F43F5E', '#8B5CF6', '#0EA5E9', '#84CC16'];
-    let allocChart = null;
+    // ══════════════════════════════════════════
+    //  Project Allocation – Donut with filter
+    // ══════════════════════════════════════════
+    var allocRawData = {{ project_allocation_list|tojson|safe }};
+    var allocChartInstance = null;
 
     function updateAllocationChart() {
-        const filter = document.getElementById('allocStatusFilter').value;
-        let filtered = allocRawData;
+        var filter = document.getElementById('allocStatusFilter').value;
+        var filtered = allocRawData;
         if (filter === 'active') {
             filtered = allocRawData.filter(function(p) { return p.status === 'Started'; });
         } else if (filter === 'inactive') {
             filtered = allocRawData.filter(function(p) { return p.status !== 'Started'; });
         }
 
-        const labels = filtered.map(function(p) { return p.name; });
-        const data = filtered.map(function(p) { return p.user_count; });
-        const colors = filtered.map(function(p, i) { return p.color || defaultColors[i % defaultColors.length]; });
+        var labels = filtered.map(function(p) { return p.name; });
+        var data = filtered.map(function(p) { return p.user_count; });
+        var colors = filtered.map(function(p, i) { return p.color || palette[i % palette.length]; });
 
-        if (allocChart) allocChart.destroy();
+        if (allocChartInstance) allocChartInstance.destroy();
 
-        const allocCtx = document.getElementById('projectAllocationChart').getContext('2d');
-        allocChart = new Chart(allocCtx, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-
-        // Build custom legend
-        var legendEl = document.getElementById('allocLegend');
-        legendEl.innerHTML = '';
+        var el = document.getElementById('projectAllocationChart');
         if (filtered.length === 0) {
-            legendEl.innerHTML = '<span class="text-sm text-gray-400">No projects to display</span>';
+            el.innerHTML = '<div class="flex items-center justify-center h-[300px] text-slate-400 text-sm">No projects to display</div>';
             return;
         }
-        labels.forEach(function(label, i) {
-            var item = document.createElement('div');
-            item.className = 'flex items-center gap-1.5 text-sm text-gray-600';
-            item.innerHTML = '<span class="inline-block w-3 h-3 rounded-sm flex-shrink-0" style="background:' + colors[i] + '"></span>' +
-                             '<span class="whitespace-nowrap">' + label + ' (' + data[i] + ')</span>';
-            legendEl.appendChild(item);
+
+        allocChartInstance = new ApexCharts(el, {
+            chart: {
+                type: 'donut',
+                height: 340,
+                fontFamily: 'Inter, system-ui, sans-serif'
+            },
+            series: data,
+            labels: labels,
+            colors: colors,
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '60%',
+                        labels: {
+                            show: true,
+                            name: { fontSize: '14px', color: '#475569' },
+                            value: { fontSize: '22px', fontWeight: 700, color: '#1e293b' },
+                            total: {
+                                show: true,
+                                label: 'Resources',
+                                fontSize: '13px',
+                                color: '#94a3b8',
+                                fontWeight: 500
+                            }
+                        }
+                    }
+                }
+            },
+            dataLabels: { enabled: false },
+            legend: {
+                position: 'bottom',
+                horizontalAlign: 'center',
+                fontSize: '12px',
+                fontWeight: 500,
+                labels: { colors: '#64748b' },
+                markers: { width: 10, height: 10, radius: 3 },
+                itemMargin: { horizontal: 10, vertical: 4 },
+                height: 80,
+                formatter: function(name, opts) {
+                    return name + ' (' + opts.w.config.series[opts.seriesIndex] + ')';
+                }
+            },
+            stroke: { width: 2, colors: ['#fff'] },
+            tooltip: {
+                y: { formatter: function(v) { return v + ' resources'; } }
+            }
         });
+        allocChartInstance.render();
     }
 
     window.updateAllocationChart = updateAllocationChart;
     updateAllocationChart();
 
-    // ---- Project Hours Chart (with status + date range filters) ----
-    const hoursRawDatasets = {{ hours_datasets|tojson|safe }};
-    const hoursDateSequence = {{ date_sequence|tojson|safe }};
-    let hoursChart = null;
+    // ══════════════════════════════════════════
+    //  Man Hours – Area Chart with filters
+    // ══════════════════════════════════════════
+    var hoursRawDatasets = {{ hours_datasets|tojson|safe }};
+    var hoursDateSequence = {{ date_sequence|tojson|safe }};
+    var hoursChartInstance = null;
 
     function updateHoursChart() {
         var statusFilter = document.getElementById('hoursStatusFilter').value;
         var startDate = document.getElementById('hoursStartDate').value;
         var endDate = document.getElementById('hoursEndDate').value;
 
-        // Filter datasets by project status
         var filtered = hoursRawDatasets;
         if (statusFilter === 'active') {
             filtered = hoursRawDatasets.filter(function(d) { return d.status === 'Started'; });
@@ -360,7 +395,6 @@ document.addEventListener('DOMContentLoaded', function() {
             filtered = hoursRawDatasets.filter(function(d) { return d.status !== 'Started'; });
         }
 
-        // Determine date indices within range
         var dateIndices = hoursDateSequence.map(function(d, i) { return i; });
         if (startDate || endDate) {
             dateIndices = dateIndices.filter(function(i) {
@@ -372,45 +406,130 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         var dates = dateIndices.map(function(i) { return hoursDateSequence[i]; });
-        var datasets = filtered.map(function(ds) {
+
+        var series = filtered.map(function(ds) {
             return {
-                label: ds.label,
+                name: ds.label,
                 data: dateIndices.map(function(i) { return ds.data[i]; }),
-                borderColor: ds.borderColor,
-                tension: 0.4,
-                fill: false
+                color: ds.borderColor
             };
         });
 
-        if (hoursChart) hoursChart.destroy();
+        if (hoursChartInstance) hoursChartInstance.destroy();
 
-        var hoursCtx = document.getElementById('hoursChart').getContext('2d');
-        hoursChart = new Chart(hoursCtx, {
-            type: 'line',
-            data: { labels: dates, datasets: datasets },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            parser: 'yyyy-MM-dd',
-                            tooltipFormat: 'MMM d'
-                        },
-                        title: { display: true, text: 'Timeline' }
-                    },
-                    y: {
-                        title: { display: true, text: 'Daily Total Man Hours' },
-                        beginAtZero: true
+        var el = document.getElementById('hoursChart');
+        if (series.length === 0 || dates.length === 0) {
+            el.innerHTML = '<div class="flex items-center justify-center h-[350px] text-slate-400 text-sm">No data to display</div>';
+            return;
+        }
+
+        hoursChartInstance = new ApexCharts(el, {
+            chart: {
+                type: 'area',
+                height: 380,
+                fontFamily: 'Inter, system-ui, sans-serif',
+                toolbar: {
+                    show: true,
+                    tools: {
+                        download: true,
+                        selection: false,
+                        zoom: true,
+                        zoomin: true,
+                        zoomout: true,
+                        pan: true,
+                        reset: true
                     }
+                },
+                zoom: { enabled: true }
+            },
+            series: series,
+            xaxis: {
+                categories: dates,
+                type: 'datetime',
+                labels: {
+                    style: { colors: '#94a3b8', fontSize: '11px' },
+                    datetimeFormatter: { month: 'MMM', day: 'dd MMM' }
+                },
+                axisBorder: { color: '#e2e8f0' },
+                axisTicks: { color: '#e2e8f0' }
+            },
+            yaxis: {
+                title: {
+                    text: 'Daily Man Hours',
+                    style: { color: '#94a3b8', fontSize: '12px', fontWeight: 500 }
+                },
+                labels: {
+                    style: { colors: '#94a3b8', fontSize: '11px' },
+                    formatter: function(v) { return Math.round(v) + 'h'; }
+                },
+                min: 0
+            },
+            stroke: { curve: 'smooth', width: 2.5 },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.25,
+                    opacityTo: 0.05,
+                    stops: [0, 95, 100]
                 }
+            },
+            dataLabels: { enabled: false },
+            grid: {
+                borderColor: '#f1f5f9',
+                strokeDashArray: 4,
+                xaxis: { lines: { show: false } }
+            },
+            legend: {
+                position: 'top',
+                horizontalAlign: 'left',
+                fontSize: '12px',
+                fontWeight: 500,
+                labels: { colors: '#64748b' },
+                markers: { width: 10, height: 10, radius: 3 },
+                itemMargin: { horizontal: 12, vertical: 4 }
+            },
+            tooltip: {
+                shared: true,
+                intersect: false,
+                custom: function(opts) {
+                    var series = opts.series;
+                    var dataPointIndex = opts.dataPointIndex;
+                    var w = opts.w;
+                    var dateLabel = new Date(w.globals.seriesX[0][dataPointIndex]).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    var html = '<div style="padding:10px 14px;font-size:13px;font-family:Inter,system-ui,sans-serif;">';
+                    html += '<div style="font-weight:600;color:#1e293b;margin-bottom:6px;">' + dateLabel + '</div>';
+                    var hasItems = false;
+                    for (var i = 0; i < series.length; i++) {
+                        var val = series[i][dataPointIndex];
+                        if (val && val > 0) {
+                            var color = w.globals.colors[i];
+                            var name = w.globals.seriesNames[i];
+                            html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">';
+                            html += '<span style="width:8px;height:8px;border-radius:2px;background:' + color + ';display:inline-block;"></span>';
+                            html += '<span style="color:#475569;">' + name + ':</span>';
+                            html += '<span style="font-weight:600;color:#1e293b;">' + val + 'h</span>';
+                            html += '</div>';
+                            hasItems = true;
+                        }
+                    }
+                    if (!hasItems) {
+                        html += '<div style="color:#94a3b8;">No active hours</div>';
+                    }
+                    html += '</div>';
+                    return html;
+                }
+            },
+            markers: {
+                size: 0,
+                hover: { size: 5 }
             }
         });
+        hoursChartInstance.render();
     }
 
     function clearHoursFilters() {
-        document.getElementById('hoursStatusFilter').value = 'all';
+        document.getElementById('hoursStatusFilter').value = 'active';
         document.getElementById('hoursStartDate').value = '';
         document.getElementById('hoursEndDate').value = '';
         updateHoursChart();
