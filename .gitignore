@@ -1,2 +1,16 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
-*
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
+*.pywz
+*.pyzw
+*.pyz
+*.db
+bin/**/*
+lib/**/*
+logs/**/*
+results/**/*
+results/**/*
