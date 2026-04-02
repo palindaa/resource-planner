@@ -37,6 +37,17 @@
                 </select>
             </div>
 
+            <!-- Intern Filter -->
+            <div>
+                <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Type</label>
+                <select id="tlInternFilter"
+                        class="w-36 px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                    <option value="all">All</option>
+                    <option value="intern">Interns</option>
+                    <option value="non_intern">Non-Interns</option>
+                </select>
+            </div>
+
             <!-- Project Filter -->
             <div>
                 <label class="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1.5">Project</label>
@@ -306,20 +317,34 @@ document.addEventListener('DOMContentLoaded', function() {
         var startFilter = document.getElementById('tlStartDate').value;
         var endFilter = document.getElementById('tlEndDate').value;
 
+        var internFilter = document.getElementById('tlInternFilter').value;
+
         // Filter users
         var filtered = rawUsers.filter(function(u) {
             if (deptFilter && u.department !== deptFilter) return false;
             if (empFilter && u.name.toLowerCase().indexOf(empFilter) === -1) return false;
+            if (internFilter === 'intern' && !u.is_intern) return false;
+            if (internFilter === 'non_intern' && u.is_intern) return false;
             return true;
+        });
+
+        // Sort users by department first, then by name
+        filtered.sort(function(a, b) {
+            if (a.department < b.department) return -1;
+            if (a.department > b.department) return 1;
+            if (a.name < b.name) return -1;
+            if (a.name > b.name) return 1;
+            return 0;
         });
 
         // Build series grouped by project
         var projectSeriesMap = {};
         var employeeSet = {};
+        var sortedCategories = [];
         var totalAssignments = 0;
 
         filtered.forEach(function(user) {
-            var label = user.name + ' (' + user.department + ')';
+            var label = user.name + ' (' + user.department + ')' + (user.is_intern ? ' [Intern]' : '');
 
             user.tasks.forEach(function(task) {
                 // Status filter
@@ -351,7 +376,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     assignmentId: task.assignment_id
                 });
 
-                employeeSet[label] = true;
+                if (!employeeSet[label]) {
+                    employeeSet[label] = true;
+                    sortedCategories.push(label);
+                }
                 totalAssignments++;
             });
         });
@@ -360,7 +388,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return projectSeriesMap[k];
         });
 
-        var employeeCount = Object.keys(employeeSet).length;
+        var employeeCount = sortedCategories.length;
 
         // Update summary
         document.getElementById('tlSummary').textContent =
@@ -368,7 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ' \u00B7 ' + totalAssignments + ' assignment' + (totalAssignments !== 1 ? 's' : '') +
             ' \u00B7 ' + series.length + ' project' + (series.length !== 1 ? 's' : '');
 
-        return { series: series, employeeCount: employeeCount };
+        return { series: series, employeeCount: employeeCount, categories: sortedCategories };
     }
 
     // ── Render the timeline ──
@@ -376,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var result = buildChartData();
         var series = result.series;
         var employeeCount = result.employeeCount;
+        var categories = result.categories;
 
         if (timelineInstance) timelineInstance.destroy();
 
@@ -448,6 +477,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 axisTicks: { color: '#e2e8f0' }
             },
             yaxis: {
+                categories: categories,
                 labels: {
                     style: { colors: '#475569', fontSize: '12px', fontWeight: 500 },
                     maxWidth: 200
@@ -521,6 +551,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('tlDeptFilter').addEventListener('change', renderTimeline);
     document.getElementById('tlStatusFilter').addEventListener('change', renderTimeline);
+    document.getElementById('tlInternFilter').addEventListener('change', renderTimeline);
     document.getElementById('tlProjectFilter').addEventListener('change', renderTimeline);
     document.getElementById('tlStartDate').addEventListener('change', renderTimeline);
     document.getElementById('tlEndDate').addEventListener('change', renderTimeline);
@@ -529,6 +560,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tlEmployeeFilter').value = '';
         document.getElementById('tlDeptFilter').value = '';
         document.getElementById('tlStatusFilter').value = 'active';
+        document.getElementById('tlInternFilter').value = 'all';
         document.getElementById('tlProjectFilter').value = '';
         document.getElementById('tlStartDate').value = toISODate(defaultStart);
         document.getElementById('tlEndDate').value = toISODate(defaultEnd);

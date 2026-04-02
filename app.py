@@ -131,17 +131,19 @@ def users(current_user):
     if request.method == 'POST':
         username = request.form['username']
         department = request.form['department']
-        
+        is_intern = 1 if request.form.get('is_intern') else 0
+
         db.execute('''
-            INSERT INTO users (username, department, status)
-            VALUES (?, ?, 'active')
-        ''', (username, department))
+            INSERT INTO users (username, department, status, is_intern)
+            VALUES (?, ?, 'active', ?)
+        ''', (username, department, is_intern))
         db.commit()
     
     # Get filter and sort parameters
     dept_filter = request.args.get('dept_filter', '')
     name_filter = request.args.get('name_filter', '')
     status_filter = request.args.get('status_filter', '')
+    intern_filter = request.args.get('intern_filter', '')
     sort_by = request.args.get('sort', 'username')
     sort_order = request.args.get('order', 'asc')
 
@@ -158,6 +160,10 @@ def users(current_user):
     if status_filter:
         query += ' AND status = ?'
         params.append(status_filter)
+    if intern_filter == 'intern':
+        query += ' AND is_intern = 1'
+    elif intern_filter == 'non_intern':
+        query += ' AND is_intern = 0'
 
     # Pagination
     page = request.args.get('page', 1, type=int)
@@ -182,7 +188,8 @@ def users(current_user):
 
     return render_template('users.html', users=users, departments=departments,
                          current_dept=dept_filter, name_filter=name_filter,
-                         status_filter=status_filter, sort_by=sort_by, sort_order=sort_order,
+                         status_filter=status_filter, intern_filter=intern_filter,
+                         sort_by=sort_by, sort_order=sort_order,
                          page=page, total_pages=total_pages, total_items=total_items)
 
 @app.route('/delete_user/<int:user_id>')
@@ -401,6 +408,7 @@ def resource_allocation(current_user):
     
     assignments = db.execute('''
         SELECT users.id as user_id, users.username, users.department,
+               users.is_intern,
                projects.id as project_id, projects.name, projects.color,
                projects.status as project_status,
                user_projects.id as assignment_id,
@@ -421,6 +429,7 @@ def resource_allocation(current_user):
                 'user_id': user_id,
                 'name': assignment['username'],
                 'department': assignment['department'],
+                'is_intern': bool(assignment['is_intern']),
                 'tasks': []
             }
         users[user_id]['tasks'].append({
@@ -813,11 +822,11 @@ def edit_user(current_user, user_id):
     if request.method == 'POST':
         username = request.form['username']
         department = request.form['department']
-        # Use get() with default value to avoid KeyError
         status = request.form.get('status', user['status'])
+        is_intern = 1 if request.form.get('is_intern') else 0
         db.execute(
-            'UPDATE users SET username = ?, department = ?, status = ? WHERE id = ?',
-            (username, department, status, user_id)
+            'UPDATE users SET username = ?, department = ?, status = ?, is_intern = ? WHERE id = ?',
+            (username, department, status, is_intern, user_id)
         )
         db.commit()
         flash('User updated successfully', 'success')
@@ -853,11 +862,13 @@ def reset_admin_passwords():
 def migrate_db():
     with app.app_context():
         db = get_db()
-        # Check if status column exists
         cursor = db.execute("PRAGMA table_info(users)")
         columns = [row['name'] for row in cursor.fetchall()]
         if 'status' not in columns:
             db.execute('ALTER TABLE users ADD COLUMN status TEXT NOT NULL DEFAULT "active"')
+            db.commit()
+        if 'is_intern' not in columns:
+            db.execute('ALTER TABLE users ADD COLUMN is_intern INTEGER NOT NULL DEFAULT 0')
             db.commit()
 
 # Run migration at startup
