@@ -159,24 +159,23 @@ def users(current_user):
         query += ' AND status = ?'
         params.append(status_filter)
 
+    # Pagination
+    page = request.args.get('page', 1, type=int)
+    per_page = 10
+
+    # Count total before adding ORDER BY / LIMIT
+    count_query = query.replace('SELECT *', 'SELECT COUNT(*)', 1)
+    total_items = db.execute(count_query, params).fetchone()[0]
+    total_pages = math.ceil(total_items / per_page) if total_items > 0 else 1
+
     # Sorting
     allowed_sorts = {'username': 'username', 'department': 'department', 'status': 'status'}
     sort_col = allowed_sorts.get(sort_by, 'username')
     order = 'DESC' if sort_order == 'desc' else 'ASC'
     query += f' ORDER BY {sort_col} {order}'
 
-    # Pagination
-    page = request.args.get('page', 1, type=int)
-    per_page = 10
-
-    # Count total before pagination
-    count_query = query.replace('SELECT *', 'SELECT COUNT(*)', 1)
-    total_items = db.execute(count_query, params).fetchone()[0]
-    total_pages = math.ceil(total_items / per_page) if total_items > 0 else 1
-
     query += ' LIMIT ? OFFSET ?'
-    paginated_params = params + [per_page, (page - 1) * per_page]
-    users = db.execute(query, paginated_params).fetchall()
+    users = db.execute(query, params + [per_page, (page - 1) * per_page]).fetchall()
 
     # Get distinct departments for filter dropdown
     departments = db.execute('SELECT DISTINCT department FROM users').fetchall()
