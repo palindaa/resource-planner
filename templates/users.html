@@ -89,7 +89,7 @@
 
     <div class="flow-root">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold text-slate-800">Employees ({{ users|length }})</h2>
+            <h2 id="list" class="text-xl font-semibold text-slate-800">Employees ({{ users|length }})</h2>
         </div>
         <div class="overflow-hidden rounded-lg ring-1 ring-black ring-opacity-5">
             <table class="min-w-full divide-y divide-slate-200">
@@ -178,7 +178,7 @@
         </div>
     </div>
 
-    {{ pagination(page, total_pages, 'users', {'dept_filter': current_dept, 'name_filter': name_filter, 'status_filter': status_filter, 'sort': sort_by, 'order': sort_order}) }}
+    {{ pagination(page, total_pages, 'users', {'dept_filter': current_dept, 'name_filter': name_filter, 'status_filter': status_filter, 'sort': sort_by, 'order': sort_order}, 'list') }}
 
     <!-- Delete Confirmation Modal -->
     <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">

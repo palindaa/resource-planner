@@ -403,6 +403,7 @@ def resource_allocation(current_user):
         SELECT users.id as user_id, users.username, users.department,
                projects.id as project_id, projects.name, projects.color,
                projects.status as project_status,
+               user_projects.id as assignment_id,
                user_projects.start_date, user_projects.end_date
         FROM user_projects
         JOIN users ON user_projects.user_id = users.id
@@ -417,12 +418,14 @@ def resource_allocation(current_user):
         user_id = assignment['user_id']
         if user_id not in users:
             users[user_id] = {
+                'user_id': user_id,
                 'name': assignment['username'],
                 'department': assignment['department'],
                 'tasks': []
             }
         users[user_id]['tasks'].append({
             'id': f"project_{assignment['project_id']}",
+            'assignment_id': assignment['assignment_id'],
             'name': assignment['name'],
             'start': assignment['start_date'],
             'end': assignment['end_date'],
@@ -435,7 +438,16 @@ def resource_allocation(current_user):
     # Convert dict_values to list for JSON serialization
     users_list = list(users.values())
 
-    return render_template('resource_allocation.html', users=users_list)
+    # Active projects and users for the add-assignment modal
+    active_projects = db.execute('SELECT id, name, color FROM projects WHERE status = "Started"').fetchall()
+    active_projects_list = [{'id': p['id'], 'name': p['name'], 'color': p['color']} for p in active_projects]
+
+    active_users = db.execute('SELECT id, username, department FROM users WHERE status = "active" ORDER BY username').fetchall()
+    active_users_list = [{'id': u['id'], 'name': u['username'], 'department': u['department']} for u in active_users]
+
+    return render_template('resource_allocation.html', users=users_list,
+                         active_projects=active_projects_list,
+                         active_users=active_users_list)
 
 @app.route('/')
 @token_required
@@ -657,6 +669,81 @@ def delete_assignment(current_user, assignment_id):
                             user_filter=request.args.get('user_filter', ''),
                             project_filter=request.args.get('project_filter', ''),
                             page=request.args.get('page', 1)))
+
+@app.route('/api/assignment/<int:assignment_id>', methods=['GET'])
+@token_required
+def api_get_assignment(current_user, assignment_id):
+    db = get_db()
+    assignment = db.execute('''
+        SELECT user_projects.id, user_projects.start_date, user_projects.end_date,
+               users.username, projects.name as project_name
+        FROM user_projects
+        JOIN users ON user_projects.user_id = users.id
+        JOIN projects ON user_projects.project_id = projects.id
+        WHERE user_projects.id = ?
+    ''', (assignment_id,)).fetchone()
+    if not assignment:
+        return {'error': 'Not found'}, 404
+    return {
+        'id': assignment['id'],
+        'username': assignment['username'],
+        'project_name': assignment['project_name'],
+        'start_date': assignment['start_date'],
+        'end_date': assignment['end_date']
+    }
+
+@app.route('/api/assignment/<int:assignment_id>', methods=['POST'])
+@token_required
+def api_update_assignment(current_user, assignment_id):
+    db = get_db()
+    data = request.get_json()
+    db.execute('''
+        UPDATE user_projects SET start_date = ?, end_date = ? WHERE id = ?
+    ''', (data['start_date'], data['end_date'], assignment_id))
+    db.commit()
+    return {'success': True}
+
+@app.route('/api/assignment', methods=['POST'])
+@token_required
+def api_create_assignment(current_user):
+    db = get_db()
+    data = request.get_json()
+    cursor = db.execute('''
+        INSERT INTO user_projects (user_id, project_id, start_date, end_date)
+        VALUES (?, ?, ?, ?)
+    ''', (data['user_id'], data['project_id'], data['start_date'], data['end_date']))
+    db.commit()
+    # Return the new assignment with full details for client-side update
+    assignment = db.execute('''
+        SELECT user_projects.id as assignment_id, users.username, users.department,
+               projects.name, projects.color, projects.status as project_status,
+               user_projects.start_date, user_projects.end_date
+        FROM user_projects
+        JOIN users ON user_projects.user_id = users.id
+        JOIN projects ON user_projects.project_id = projects.id
+        WHERE user_projects.id = ?
+    ''', (cursor.lastrowid,)).fetchone()
+    return {
+        'success': True,
+        'assignment': {
+            'assignment_id': assignment['assignment_id'],
+            'username': assignment['username'],
+            'department': assignment['department'],
+            'project_name': assignment['name'],
+            'project_color': assignment['color'],
+            'project_status': assignment['project_status'],
+            'start_date': assignment['start_date'],
+            'end_date': assignment['end_date']
+        }
+    }
+
+@app.route('/api/assignment/<int:assignment_id>/delete', methods=['POST'])
+@token_required
+def api_delete_assignment(current_user, assignment_id):
+    db = get_db()
+    db.execute('DELETE FROM user_projects WHERE id = ?', (assignment_id,))
+    db.commit()
+    return {'success': True}
 
 @app.route('/edit_project/<int:project_id>', methods=['GET', 'POST'])
 @token_required

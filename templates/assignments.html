@@ -39,7 +39,7 @@
         </button>
     </form>
 
-    <h2 class="text-xl font-semibold mb-4">Existing Assignments</h2>
+    <h2 id="list" class="text-xl font-semibold mb-4">Existing Assignments</h2>
     {% if assignments %}
     <table class="w-full">
         <thead>
@@ -90,7 +90,7 @@
     <p class="text-slate-500 text-center py-6">No assignments found matching your criteria.</p>
     {% endif %}
 
-    {{ pagination(page, total_pages, 'assign', {'user_filter': user_filter, 'project_filter': project_filter}) }}
+    {{ pagination(page, total_pages, 'assign', {'user_filter': user_filter, 'project_filter': project_filter}, 'list') }}
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">

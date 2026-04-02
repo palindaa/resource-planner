@@ -123,7 +123,7 @@
     </div>
 
     <!-- Project List -->
-    <h2 class="text-xl font-semibold text-slate-800 mb-4">Project List</h2>
+    <h2 id="list" class="text-xl font-semibold text-slate-800 mb-4">Project List</h2>
     {% if projects %}
     <div class="overflow-hidden rounded-lg ring-1 ring-black ring-opacity-5">
         <table class="min-w-full divide-y divide-slate-200">
@@ -211,7 +211,7 @@
     <p class="text-slate-500 text-center py-6">No projects found.</p>
     {% endif %}
 
-    {{ pagination(page, total_pages, 'projects', {'search': search, 'status_filter': status_filter}) }}
+    {{ pagination(page, total_pages, 'projects', {'search': search, 'status_filter': status_filter}, 'list') }}
 </div>
 
 <!-- Delete Confirmation Modal -->

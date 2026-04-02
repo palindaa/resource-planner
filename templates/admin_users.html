@@ -35,7 +35,7 @@
     </form>
 
     <!-- Existing Admins -->
-    <h2 class="text-xl font-semibold text-slate-800 mb-4">Existing Admins</h2>
+    <h2 id="list" class="text-xl font-semibold text-slate-800 mb-4">Existing Admins</h2>
     <div class="overflow-hidden rounded-lg ring-1 ring-black ring-opacity-5">
         <table class="min-w-full divide-y divide-slate-200">
             <thead class="bg-slate-50">
@@ -78,6 +78,6 @@
         </table>
     </div>
 
-    {{ pagination(page, total_pages, 'admin_users') }}
+    {{ pagination(page, total_pages, 'admin_users', {}, 'list') }}
 </div>
 {% endblock %}
