@@ -263,7 +263,10 @@ def start_project(current_user, project_id):
     db = get_db()
     db.execute('UPDATE projects SET status = "Started" WHERE id = ?', (project_id,))
     db.commit()
-    return redirect(url_for('projects'))
+    return redirect(url_for('projects',
+                            page=request.args.get('page', 1),
+                            search=request.args.get('search', ''),
+                            status_filter=request.args.get('status_filter', '')))
 
 @app.route('/close_project/<int:project_id>')
 @token_required
@@ -271,7 +274,10 @@ def close_project(current_user, project_id):
     db = get_db()
     db.execute('UPDATE projects SET status = "Closed" WHERE id = ?', (project_id,))
     db.commit()
-    return redirect(url_for('projects'))
+    return redirect(url_for('projects',
+                            page=request.args.get('page', 1),
+                            search=request.args.get('search', ''),
+                            status_filter=request.args.get('status_filter', '')))
 
 @app.route('/reactivate_project/<int:project_id>')
 @token_required
@@ -280,7 +286,10 @@ def reactivate_project(current_user, project_id):
     db.execute('UPDATE projects SET status = "Started" WHERE id = ?', (project_id,))
     db.commit()
     flash('Project reactivated successfully', 'success')
-    return redirect(url_for('projects'))
+    return redirect(url_for('projects',
+                            page=request.args.get('page', 1),
+                            search=request.args.get('search', ''),
+                            status_filter=request.args.get('status_filter', '')))
 
 @app.route('/assign', methods=['GET', 'POST'])
 @token_required
@@ -303,6 +312,8 @@ def assign(current_user):
     # Get filter parameters from request
     user_filter = request.args.get('user_filter', '')
     project_filter = request.args.get('project_filter', '')
+    end_date_from = request.args.get('end_date_from', '')
+    end_date_to = request.args.get('end_date_to', '')
 
     # Pagination
     page = request.args.get('page', 1, type=int)
@@ -327,6 +338,12 @@ def assign(current_user):
     if project_filter:
         conditions.append('user_projects.project_id = ?')
         params.append(project_filter)
+    if end_date_from:
+        conditions.append('user_projects.end_date >= ?')
+        params.append(end_date_from)
+    if end_date_to:
+        conditions.append('user_projects.end_date <= ?')
+        params.append(end_date_to)
 
     if conditions:
         query += ' WHERE ' + ' AND '.join(conditions)
@@ -361,7 +378,9 @@ def assign(current_user):
                          page=page,
                          total_pages=total_pages,
                          user_filter=user_filter,
-                         project_filter=project_filter)
+                         project_filter=project_filter,
+                         end_date_from=end_date_from,
+                         end_date_to=end_date_to)
 
 @app.route('/edit_assignment/<int:assignment_id>', methods=['GET', 'POST'])
 @token_required
@@ -389,6 +408,8 @@ def edit_assignment(current_user, assignment_id):
         return redirect(url_for('assign',
                                 user_filter=request.form.get('ret_user_filter', ''),
                                 project_filter=request.form.get('ret_project_filter', ''),
+                                end_date_from=request.form.get('ret_end_date_from', ''),
+                                end_date_to=request.form.get('ret_end_date_to', ''),
                                 page=request.form.get('ret_page', 1)))
 
     users = db.execute('SELECT * FROM users').fetchall()
@@ -399,6 +420,8 @@ def edit_assignment(current_user, assignment_id):
                          projects=projects,
                          user_filter=request.args.get('user_filter', ''),
                          project_filter=request.args.get('project_filter', ''),
+                         end_date_from=request.args.get('end_date_from', ''),
+                         end_date_to=request.args.get('end_date_to', ''),
                          page=request.args.get('page', 1))
 
 @app.route('/resource-allocation')
@@ -677,6 +700,8 @@ def delete_assignment(current_user, assignment_id):
     return redirect(url_for('assign',
                             user_filter=request.args.get('user_filter', ''),
                             project_filter=request.args.get('project_filter', ''),
+                            end_date_from=request.args.get('end_date_from', ''),
+                            end_date_to=request.args.get('end_date_to', ''),
                             page=request.args.get('page', 1)))
 
 @app.route('/api/assignment/<int:assignment_id>', methods=['GET'])

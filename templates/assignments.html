@@ -10,7 +10,7 @@
     
     <form method="GET" class="mb-6 bg-slate-50 rounded-xl p-4">
         <h3 class="text-lg font-medium text-slate-800 mb-4">Filter Assignments</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
                 <label class="block text-sm font-medium text-slate-700 mb-2">User</label>
                 <select name="user_filter" class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary transition-all">
@@ -33,10 +33,27 @@
                     {% endfor %}
                 </select>
             </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">End Date From</label>
+                <input type="date" name="end_date_from" value="{{ end_date_from }}"
+                       class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-slate-700 mb-2">End Date To</label>
+                <input type="date" name="end_date_to" value="{{ end_date_to }}"
+                       class="w-full px-4 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary focus:border-primary transition-all">
+            </div>
         </div>
-        <button type="submit" class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
-            Apply Filter
-        </button>
+        <div class="mt-4 flex items-center gap-3">
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors">
+                Apply Filter
+            </button>
+            {% if user_filter or project_filter or end_date_from or end_date_to %}
+            <a href="{{ url_for('assign') }}" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm hover:bg-slate-200 transition-colors">
+                Clear Filters
+            </a>
+            {% endif %}
+        </div>
     </form>
 
     <h2 id="list" class="text-xl font-semibold mb-4">Existing Assignments</h2>
@@ -60,7 +77,7 @@
                 <td class="py-4">{{ assignment.end_date }}</td>
                 <td class="py-4">
                     <div class="flex space-x-2">
-                        <a href="/edit_assignment/{{ assignment.id }}?user_filter={{ user_filter }}&project_filter={{ project_filter }}&page={{ page }}"
+                        <a href="/edit_assignment/{{ assignment.id }}?user_filter={{ user_filter }}&project_filter={{ project_filter }}&end_date_from={{ end_date_from }}&end_date_to={{ end_date_to }}&page={{ page }}"
                            class="edit-btn inline-flex items-center p-2 bg-teal-100 text-teal-800 rounded-lg hover:bg-teal-200 transition-colors"
                            data-id="{{ assignment.id }}"
                            title="Edit">
@@ -90,7 +107,7 @@
     <p class="text-slate-500 text-center py-6">No assignments found matching your criteria.</p>
     {% endif %}
 
-    {{ pagination(page, total_pages, 'assign', {'user_filter': user_filter, 'project_filter': project_filter}, 'list') }}
+    {{ pagination(page, total_pages, 'assign', {'user_filter': user_filter, 'project_filter': project_filter, 'end_date_from': end_date_from, 'end_date_to': end_date_to}, 'list') }}
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
@@ -252,6 +269,8 @@
             var params = new URLSearchParams({
                 user_filter: '{{ user_filter }}',
                 project_filter: '{{ project_filter }}',
+                end_date_from: '{{ end_date_from }}',
+                end_date_to: '{{ end_date_to }}',
                 page: '{{ page }}'
             });
             window.location.href = '/delete_assignment/' + currentId + '?' + params.toString();

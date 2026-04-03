@@ -10,6 +10,8 @@
     <form method="POST" id="editAssignmentForm" class="bg-slate-50 rounded-xl p-6">
         <input type="hidden" name="ret_user_filter" value="{{ user_filter }}">
         <input type="hidden" name="ret_project_filter" value="{{ project_filter }}">
+        <input type="hidden" name="ret_end_date_from" value="{{ end_date_from }}">
+        <input type="hidden" name="ret_end_date_to" value="{{ end_date_to }}">
         <input type="hidden" name="ret_page" value="{{ page }}">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <div>

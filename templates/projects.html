@@ -157,7 +157,7 @@
                         <div class="flex items-center justify-end space-x-2">
                             <!-- Status Action -->
                             {% if project.status == 'Queued' %}
-                            <a href="{{ url_for('start_project', project_id=project.id) }}"
+                            <a href="{{ url_for('start_project', project_id=project.id, page=page, search=search, status_filter=status_filter) }}"
                                class="inline-flex items-center p-2 bg-primary-50 text-primary rounded-lg hover:bg-primary-100 transition-colors"
                                title="Start Project">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,7 +166,7 @@
                                 </svg>
                             </a>
                             {% elif project.status == 'Started' %}
-                            <a href="{{ url_for('close_project', project_id=project.id) }}"
+                            <a href="{{ url_for('close_project', project_id=project.id, page=page, search=search, status_filter=status_filter) }}"
                                class="inline-flex items-center p-2 bg-yellow-50 text-yellow-700 rounded-lg hover:bg-yellow-100 transition-colors"
                                title="Close Project">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -174,7 +174,7 @@
                                 </svg>
                             </a>
                             {% else %}
-                            <a href="{{ url_for('reactivate_project', project_id=project.id) }}"
+                            <a href="{{ url_for('reactivate_project', project_id=project.id, page=page, search=search, status_filter=status_filter) }}"
                                class="inline-flex items-center p-2 bg-primary-50 text-primary rounded-lg hover:bg-primary-100 transition-colors"
                                title="Reactivate Project">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
